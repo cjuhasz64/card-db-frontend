@@ -13,6 +13,8 @@ import Featureds from './pages/featureds/index.js';
 import Teams from './pages/teams/index.js';
 import Games from './pages/games/index.js';
 
+import './App.css';
+
 
 export default class App extends Component {
     render() {

@@ -9,7 +9,14 @@ export default class Box extends React.Component {
         return (
           <Link to={this.props.to}>
             <button className="box">
-              {this.props.title}
+              <div className='header'>
+                <span>{this.props.title}</span>
+              </div>
+              
+              <div className='wrapper-data'>
+                  d
+              </div>
+
             </button>
           </Link>
         )
