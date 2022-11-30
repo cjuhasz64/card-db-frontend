@@ -1,0 +1,40 @@
+.games {
+
+    > table {
+        margin-left: auto;
+        margin-right: auto;
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        border: none;
+
+        > tbody, thead {
+        
+            > tr {
+
+                > th, td {
+                    border: 1px solid black;
+                    text-align: left;
+                    padding: 5px;
+                }  
+
+                td:last-child {
+                    border :none;
+                    color: white;
+                }
+            }   
+
+            > tr:hover {
+                > td:last-child {
+                    border :none;
+                    color: black;
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+}
+
+
+
+
+

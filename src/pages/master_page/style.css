@@ -1,0 +1,17 @@
+.header_master {
+    background-color: lightcoral;
+    height: 25%;
+    color: black;
+    text-align: center;
+}
+
+.header_master > span {
+    margin-top: 100px;
+    vertical-align: bottom;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.header_master > div {
+    height: 70%;
+}

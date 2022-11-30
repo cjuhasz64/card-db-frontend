@@ -10,7 +10,7 @@ export default class Home extends React.Component {
         cards: 0,
         sets: 0,
         varieties: 0,
-        featureds: 0, 
+        features: 0, 
         teams: 0,
         games: 0
     }
@@ -20,7 +20,7 @@ export default class Home extends React.Component {
             cards: await fetchApi('count', '/v1/cards'),
             sets: await fetchApi('count', '/v1/sets'),
             varieties: await fetchApi('count', '/v1/varieties'),
-            featureds: await fetchApi('count', '/v1/featureds'),
+            features: await fetchApi('count', '/v1/features'),
             teams: await fetchApi('count', '/v1/teams'),
             games: await fetchApi('count', '/v1/games')
         })
@@ -39,13 +39,12 @@ export default class Home extends React.Component {
     render() {
         return (
             <div className='home'>
-               
                 <h1>Trading Card Inventory</h1>
                 <div className='flex-wrapper'> 
                     { this.renderBox("Cards", this.state.cards) }
                     { this.renderBox("Sets", this.state.sets) }
                     { this.renderBox("Varieties", this.state.varieties) }
-                    { this.renderBox("Featureds", this.state.featureds) }
+                    { this.renderBox("Features", this.state.features) }
                     { this.renderBox("Teams", this.state.teams) }
                     { this.renderBox("Games", this.state.games) }
                 </div>

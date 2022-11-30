@@ -1,7 +1,6 @@
 import React from 'react';
 import './style.css';
 import { Link } from 'react-router-dom';
-import fetchApi from '../../util/fetchApi';
 
 // http://localhost:3000/api/v1/teams
 

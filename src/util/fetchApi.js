@@ -23,6 +23,7 @@ export default async function fetchApi(method, endpoint, data = null) {
             try {
                 return axios.get(`${URL}${endpoint}`)
                 .then( res => {
+                    console.log(res.data.length)
                     return res.data.length;
                 });
                     
@@ -31,17 +32,18 @@ export default async function fetchApi(method, endpoint, data = null) {
             }
             break;
         case 'get':
-            //console.log('get');
+            console.log('get');
 
             try {
-                return axios.get(`${URL}${endpoint}`);
+                return axios.get(`${URL}${endpoint}`)
+                .then( res => {
+                    return res.data;
+                });
                     
 
             } catch (error) {
                 return error;
             }
-
-
             break;
         case 'post':
             console.log('post');
@@ -51,6 +53,8 @@ export default async function fetchApi(method, endpoint, data = null) {
             break;
         case 'delete':
             console.log('delete');
+            console.log(`${URL}${endpoint}`);
+            return axios.delete(`${URL}${endpoint}`)
             break;
         default:
         
