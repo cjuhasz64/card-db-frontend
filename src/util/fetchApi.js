@@ -18,8 +18,7 @@ export default async function fetchApi(method, endpoint, data = null) {
     switch (method.toLowerCase()) {
 
         case 'count':
-            //console.log('get');
-
+            console.log('get');
             try {
                 return axios.get(`${URL}${endpoint}`)
                 .then( res => {
@@ -30,30 +29,39 @@ export default async function fetchApi(method, endpoint, data = null) {
             } catch (error) {
                 return error;
             }
-            break;
         case 'get':
             console.log('get');
-
             try {
                 return axios.get(`${URL}${endpoint}`)
                 .then( res => {
                     return res.data;
                 });
-                    
-
+            } catch (error) {
+                return error;
+            }
+        case 'post':
+            console.log('post');
+            try {
+                return axios.post(`${URL}${endpoint}`, data)
+                .then( res => {
+                    return res.data;
+                });
             } catch (error) {
                 return error;
             }
             break;
-        case 'post':
-            console.log('post');
-            break;
         case 'put':
-            console.log('put');
-            break;
+            console.log(data)
+            try {
+                return axios.put(`${URL}${endpoint}`, data)
+                .then( res => {
+                    return res.data;
+                });
+            } catch (error) {
+                return error;
+            }
         case 'delete':
             console.log('delete');
-            console.log(`${URL}${endpoint}`);
             return axios.delete(`${URL}${endpoint}`)
             break;
         default:
