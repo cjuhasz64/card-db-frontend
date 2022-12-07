@@ -29,6 +29,7 @@ function InputWrapper(props) {
   }
 
   useEffect(() => {
+    console.log(foreignData)
     switch (currentAction) {
       case 'updating':
         if (actionActiveState === 'cancel') {

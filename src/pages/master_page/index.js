@@ -9,7 +9,8 @@ import Varieties from "../../components/varieties";
 import "./style.css"
 
 const foreignKeys = {
-  'teams':['games']
+  'teams':['games'],
+  'sets':['games']
 }
 
 
@@ -170,7 +171,13 @@ export default class MasterPage extends React.Component {
           return (
             <>
               {this.drawHeader("Sets")}
-              <Sets />
+              <Sets 
+                data={this.state.resultData}
+                foreignData={this.state.foreignData}
+                handleDelete={this.handleDelete}
+                handleUpdate={this.handleUpdate}
+                handleCreate={this.handleCreate}
+              />
             </>
           )
           break;

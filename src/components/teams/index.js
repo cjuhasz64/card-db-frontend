@@ -153,7 +153,6 @@ export default class Teams extends React.Component {
                   <></>
                 )
               }
-          
             </tr>
             {
             this.props.data.map((row, index) =>
