@@ -10,7 +10,8 @@ import "./style.css"
 
 const foreignKeys = {
   'teams':['games'],
-  'sets':['games']
+  'sets':['games'],
+  'varieties':['sets']
 }
 
 
@@ -60,7 +61,7 @@ export default class MasterPage extends React.Component {
       this.setState({
         resultData: await fetchApi('get', `/v1/${this.state.activePage}`),
       })
-      
+      console.log(this.activePage)
       if (Object.keys(foreignKeys).includes(this.state.activePage))
       {
         foreignKeys[this.state.activePage].forEach( async element => {
@@ -201,7 +202,13 @@ export default class MasterPage extends React.Component {
           return (
             <>
               {this.drawHeader("Varieties")}
-              <Varieties />
+              <Varieties 
+                data={this.state.resultData}
+                foreignData={this.state.foreignData}
+                handleDelete={this.handleDelete}
+                handleUpdate={this.handleUpdate}
+                handleCreate={this.handleCreate}
+              />
             </>
 
           )

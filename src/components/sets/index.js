@@ -10,7 +10,7 @@ const pluralize = require('pluralize')
 const columns = ['id','name','game_id','year'];
 
 // http://localhost:3000/api/v1/games
-export default class Teams extends React.Component {
+export default class Sets extends React.Component {
 
   state = {
     updateData: {},
