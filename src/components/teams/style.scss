@@ -1,0 +1,107 @@
+.teams {
+
+  > .header-options {
+    // background-color: red;
+    height: 25px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+
+    > .options-edit {
+      >button {
+        border: none;
+        background-color: transparent;
+        // display: none;
+      }
+
+      > button:hover {
+        color: transparent;
+        text-shadow: 0 0 0 black;
+        cursor: pointer;
+      }
+    }
+
+    > .select-create {
+      > button {
+        border: none;
+        background-color: transparent;
+        // display: none;
+      }
+
+      > button:hover {
+        color: lightblue;
+        cursor: pointer;
+      }
+    }
+
+    > .options-create {
+      > button {
+        border: none;
+        background-color: transparent;
+        // display: none;
+      }
+
+      > button:hover {
+        color: lightblue;
+        cursor: pointer;
+      }
+    }
+  }
+
+  > table {
+    margin-left: auto;
+    margin-right: auto;
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    border: none;
+
+    > tbody, thead {
+
+      > tr {
+
+        > th {
+          border: 1px solid black;
+          text-align: left;
+          padding: 5px;
+
+          &:first-child {
+            display: none;
+          }
+        }
+        
+
+        > td {
+          border: 1px solid black;
+          text-align: left;
+          padding: 5px;
+
+          > input {
+            width: 30px;
+          }
+
+          &:first-child {
+            display: none;
+          }
+        }
+
+        > .delete-active {
+          border: none;
+          color: white;
+          width: 8px;
+
+          &:hover {
+            border: none;
+            color: black;
+            cursor: pointer;
+          }
+        }
+
+        > .delete-inactive {
+          border: none;
+          color: white;
+          width: 8px;
+        }
+      }
+    }
+  }
+}

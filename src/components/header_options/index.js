@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 function HeaderOptions(props) {
 
   const { detectEditCancel, detectEditConfirm, currentAction, detectCreate, detectCreateConfirm } = props;
-  console.log(currentAction)
+  
 
   return (
     <div className='header-options'>

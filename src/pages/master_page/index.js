@@ -8,7 +8,9 @@ import Sets from "../../components/sets";
 import Varieties from "../../components/varieties";
 import "./style.css"
 
-
+const foreignKeys = {
+  'teams':['games']
+}
 
 
 export default class MasterPage extends React.Component {
@@ -20,7 +22,8 @@ export default class MasterPage extends React.Component {
       inFlight: null,
       activeView: 'view',
       activePage: this.props.target,
-      resultData: null
+      resultData: null,
+      foreignData: {}
     }
 
     this.handleDelete = this.handleDelete.bind(this)
@@ -47,11 +50,8 @@ export default class MasterPage extends React.Component {
     )
   }
 
-
-
   async fetchResources() {
     try {
-
       // had to do three seperate setState so render would happen after new data was retrieved
       this.setState({
         inFlight: 'fetching',
@@ -59,15 +59,34 @@ export default class MasterPage extends React.Component {
       this.setState({
         resultData: await fetchApi('get', `/v1/${this.state.activePage}`),
       })
+      
+      if (Object.keys(foreignKeys).includes(this.state.activePage))
+      {
+        foreignKeys[this.state.activePage].forEach( async element => {
+          let current = await fetchApi('get', `/v1/${element}`);
+          if (foreignKeys[this.state.activePage].length > 1)
+          {
+            this.setState( prev => ({
+              foreignData: {...prev.foreignData, [`${element}`]:current}
+            }))
+          } else {
+            this.setState({
+              foreignData: {[`${element}`]:current}
+            })
+          }
+          //console.log(this.state.foreignData) 
+        });
+      }
+      
       this.setState({
         inFlight: 'done'
       })
+
     } catch (error) {
       this.setState({
         inFlight: 'error'
       })
     }
-
   }
 
   async handleDelete(id) {
@@ -160,7 +179,14 @@ export default class MasterPage extends React.Component {
           return (
             <>
               {this.drawHeader("Teams")}
-              <Teams />
+              <Teams
+              
+                data={this.state.resultData}
+                foreignData={this.state.foreignData}
+                handleDelete={this.handleDelete}
+                handleUpdate={this.handleUpdate}
+                handleCreate={this.handleCreate}
+              />
             </>
           )
           break;
