@@ -8,7 +8,7 @@
     justify-content: center;
 
     > .options-edit {
-      >button {
+      > button {
         border: none;
         background-color: transparent;
         // display: none;
@@ -56,24 +56,20 @@
     border: none;
 
     > tbody, thead {
-
       > tr {
-
+        &:nth-child(even) {
+          background-color: #f2f2f2;
+        }
         > th {
-          border: 1px solid black;
-          text-align: left;
           padding: 5px;
 
           &:first-child {
             display: none;
           }
         }
-        
-
+      
         > td {
-          border: 1px solid black;
-          text-align: left;
-          padding: 5px;
+          padding: 10px;
 
           > input {
             width: 30px;
@@ -88,14 +84,19 @@
           border: none;
           color: white;
           width: 8px;
+          background-color: white;
+        }
 
-          &:hover {
-            border: none;
+        &:hover {
+          border: none;
+          color: black;
+          
+          > .delete-active {   
             color: black;
             cursor: pointer;
           }
         }
-
+        
         > .delete-inactive {
           border: none;
           color: white;

@@ -11,7 +11,9 @@ import "./style.css"
 const foreignKeys = {
   'teams':['games'],
   'sets':['games'],
-  'varieties':['sets']
+  'varieties':['sets'],
+  'features':['teams'],
+  'cards':['features','varieties']
 }
 
 
@@ -139,9 +141,14 @@ export default class MasterPage extends React.Component {
           return (
             <>
               {this.drawHeader("Cards")}
-              <Cards />
+              <Cards 
+                data={this.state.resultData}
+                foreignData={this.state.foreignData}
+                handleDelete={this.handleDelete}
+                handleUpdate={this.handleUpdate}
+                handleCreate={this.handleCreate}
+              />
             </>
-
           )
           break;
 
@@ -149,7 +156,13 @@ export default class MasterPage extends React.Component {
           return (
             <>
               {this.drawHeader("Features")}
-              <Features />
+              <Features 
+                data={this.state.resultData}
+                foreignData={this.state.foreignData}
+                handleDelete={this.handleDelete}
+                handleUpdate={this.handleUpdate}
+                handleCreate={this.handleCreate}
+              />
             </>
           )
           break;
@@ -157,7 +170,6 @@ export default class MasterPage extends React.Component {
           return (
             <>
               {this.drawHeader("Games")}
-
               <Games
                 data={this.state.resultData}
                 handleDelete={this.handleDelete}
@@ -188,7 +200,6 @@ export default class MasterPage extends React.Component {
             <>
               {this.drawHeader("Teams")}
               <Teams
-              
                 data={this.state.resultData}
                 foreignData={this.state.foreignData}
                 handleDelete={this.handleDelete}
@@ -210,7 +221,6 @@ export default class MasterPage extends React.Component {
                 handleCreate={this.handleCreate}
               />
             </>
-
           )
           break;
       }

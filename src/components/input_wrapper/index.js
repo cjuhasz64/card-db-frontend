@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import fetchApi from '../../util/fetchApi';
 import Select from 'react-select';
 
@@ -29,33 +29,41 @@ function InputWrapper(props) {
   }
 
   useEffect(() => {
-    console.log(foreignData)
     switch (currentAction) {
       case 'updating':
         if (actionActiveState === 'cancel') {
           setDisplayEdit(false);
-          setCurrentValue(defaultValue);
           handleActionCancel();
         } else if (actionActiveState === 'confirm') {
           setDisplayEdit(false);
-          setCurrentValue(currentValue);
-          setDefaultValue(currentValue);
-          handleEditConfirm(currentValue, isEdited);
-          setIsEdited(false);
-        } else if (actionActiveState === 'inactive') {
-          
+          if (currentValue === '') {
+            handleActionCancel();
+          } else {
+            setDefaultValue(currentValue);
+            handleEditConfirm(currentValue, isEdited);
+            setIsEdited(false);
+          }
         }
         break;
       case 'creating':
         if (actionActiveState === 'confirm') {
           if (!props.value) {
-            handleCreateConfirm(currentValue);
-          } 
+            if (typeof currentValue === 'undefined') {
+              handleCreateConfirm(currentValue, false);
+            } else {
+              handleCreateConfirm(currentValue, true);
+            }
+          }
         } else if (actionActiveState === 'cancel') {
           handleActionCancel();
         }
         break;
       case 'reading':  
+        if (actionActiveState === 'inactive') {
+          setDisplayEdit(false);
+          setCurrentValue(defaultValue);
+        }
+
         async function getForeignValue () {
           if (foreignData) { 
             var result = await fetchApi('get', `/v1/${Object.keys(foreignData)[0]}/${currentValue}`);
@@ -68,6 +76,7 @@ function InputWrapper(props) {
         break;
     }
   }, [currentAction, actionActiveState]);
+
   return (
     <>
       {  
@@ -84,7 +93,7 @@ function InputWrapper(props) {
               onChange={e => {setIsEdited(true); setCurrentValue(e.value)}}
               value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
                 return option.value === currentValue;
-              })}
+              })} 
             />
           )
         ) : (

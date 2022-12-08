@@ -15,6 +15,7 @@ export default class Teams extends React.Component {
   state = {
     updateData: {},
     rowIsEdited: false,
+    createIsValid: true,
     editCounter: 0,
     currentAction: 'reading', // 'reading' 'updating' 'creating' 'deleting'
     actionActiveState: 'inactive', // 'cancel' 'confirm' 'inactive' 'fetching'
@@ -95,15 +96,24 @@ export default class Teams extends React.Component {
     })
   }
 
-  handleCreateConfirm(value) {
+  handleCreateConfirm(value, createIsValid) {
     this.state.updateData[columns[this.state.createCounter]] = value;
     this.state.createCounter++;
 
+    if (!createIsValid) {
+      this.state.createIsValid = false;
+    } 
+
     if (Object.keys(this.state.updateData).length === columns.length - 1) {
       
-      this.props.handleCreate(this.state.updateData)
-      this.state.updateData = {};
-      this.state.createCounter = 1;
+      if (this.state.createIsValid) {
+        this.props.handleCreate(this.state.updateData)  
+      }
+      this.setState({
+        updateData: {},
+        createCounter: 1,
+        createIsValid: true
+      })
     }
 
     this.setState({
