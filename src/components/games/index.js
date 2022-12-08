@@ -127,8 +127,47 @@ export default class Games extends React.Component {
   renderTable() {
     if (this.props.data.length === 0) {
       return (
-        <div>No Data to be displayed</div>
-      )
+        this.state.currentAction === 'creating' ? ( 
+          <table>
+            <thead>
+              <tr>
+                {Object.keys(columns).map((key) => <th key={key}>{columns[key]}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+              {
+                this.state.currentAction === 'creating' ? (
+                  <>
+                    <td/>
+                    {
+                      Object.keys(columns).map ((key) => 
+                        (key != 'id') ? (
+                          <td>
+                            <InputWrapper 
+                              currentAction={this.state.currentAction}
+                              actionActiveState={this.state.actionActiveState}
+                              handleCreateConfirm={this.handleCreateConfirm}
+                              handleActionCancel={this.handleActionCancel}
+                            />
+                          </td>
+                        ) : (
+                          null
+                        )
+                      )
+                    } 
+                  </>
+                ) : (
+                  <></>
+                )
+              }
+              </tr>
+            </tbody>
+          </table>
+        ) : (
+          <span>No data to be displayed</span>
+        )
+      ) 
     }
     return (
       <>
