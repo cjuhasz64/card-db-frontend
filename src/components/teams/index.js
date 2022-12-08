@@ -7,7 +7,11 @@ import getForeignName from '../../util/getForeignName';
 
 const pluralize = require('pluralize')
 
-const columns = ['id','name','game_id'];
+const columns = {
+  'id':'x',
+  'name':'Name',
+  'game_id':'Game'
+};
 
 // http://localhost:3000/api/v1/teams
 export default class Teams extends React.Component {
@@ -49,14 +53,14 @@ export default class Teams extends React.Component {
   handleEditConfirm (value, isEdited) {
 
     console.log(isEdited)
-    this.state.updateData[columns[this.state.editCounter]] = value;
+    this.state.updateData[Object.keys(columns)[this.state.editCounter]] = value;
     this.state.editCounter++;
   
     if (isEdited) {
       this.state.rowIsEdited = true;
     }
   
-    if (Object.keys(this.state.updateData).length === columns.length) {
+    if (Object.keys(this.state.updateData).length === Object.keys(columns).length) {
       if (this.state.rowIsEdited === true) {
         this.props.handleUpdate(this.state.updateData)
         this.state.rowIsEdited = false;
@@ -97,14 +101,14 @@ export default class Teams extends React.Component {
   }
 
   handleCreateConfirm(value, createIsValid) {
-    this.state.updateData[columns[this.state.createCounter]] = value;
+    this.state.updateData[Object.keys(columns)[this.state.createCounter]] = value;
     this.state.createCounter++;
 
     if (!createIsValid) {
       this.state.createIsValid = false;
     } 
 
-    if (Object.keys(this.state.updateData).length === columns.length - 1) {
+    if (Object.keys(this.state.updateData).length === Object.keys(columns).length - 1) {
       
       if (this.state.createIsValid) {
         this.props.handleCreate(this.state.updateData)  
@@ -133,7 +137,7 @@ export default class Teams extends React.Component {
         <table>
           <thead>
             <tr>
-              {columns.map((key) => <th key={key}>{key}</th>)}
+              {Object.keys(columns).map((key) => <th key={key}>{columns[key]}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -143,7 +147,7 @@ export default class Teams extends React.Component {
                   <>
                     <td/>
                     {
-                      columns.map ((key) => 
+                      Object.keys(columns).map ((key) => 
                         (key != 'id') ? (
                           <td>
                             <InputWrapper 
@@ -167,7 +171,7 @@ export default class Teams extends React.Component {
             {
             this.props.data.map((row, index) =>
               <tr>{
-                columns.map((key) =>
+                Object.keys(columns).map((key) =>
                   <td id={`${key}:${index}`}>
                     <InputWrapper
                       value={row[key]}

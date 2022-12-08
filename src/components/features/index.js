@@ -7,7 +7,11 @@ import getForeignName from '../../util/getForeignName';
 
 const pluralize = require('pluralize')
 
-const columns = ['id','name','team_id'];
+const columns = {
+  'id':'x',
+  'name':'Name',
+  'team_id':'Team'
+};
 
 // http://localhost:3000/api/v1/games
 export default class Sets extends React.Component {
@@ -47,14 +51,14 @@ export default class Sets extends React.Component {
   }
 
   handleEditConfirm (value, rowIsEdited) {
-    this.state.updateData[columns[this.state.editCounter]] = value;
+    this.state.updateData[Object.keys(columns)[this.state.editCounter]] = value;
     this.state.editCounter++;
   
     if (rowIsEdited) {
       this.state.rowIsEdited = true;
     }
   
-    if (Object.keys(this.state.updateData).length === columns.length) {
+    if (Object.keys(this.state.updateData).length === Object.keys(columns).length) {
       if (this.state.rowIsEdited === true) {
         this.props.handleUpdate(this.state.updateData)
         this.state.rowIsEdited = false;
@@ -95,14 +99,14 @@ export default class Sets extends React.Component {
   }
 
   handleCreateConfirm(value, createIsValid) {
-    this.state.updateData[columns[this.state.createCounter]] = value;
+    this.state.updateData[Object.keys(columns)[this.state.createCounter]] = value;
     this.state.createCounter++;
 
     if (!createIsValid) {
       this.state.createIsValid = false;
     } 
 
-    if (Object.keys(this.state.updateData).length === columns.length - 1) {
+    if (Object.keys(this.state.updateData).length === Object.keys(columns).length - 1) {
       if (this.state.createIsValid) {
         this.props.handleCreate(this.state.updateData)  
       }
@@ -130,7 +134,7 @@ export default class Sets extends React.Component {
         <table>
           <thead>
             <tr>
-              {columns.map((key) => <th key={key}>{key}</th>)}
+              {Object.keys(columns).map((key) => <th key={key}>{columns[key]}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -140,7 +144,7 @@ export default class Sets extends React.Component {
                   <>
                     <td/>
                     {
-                      columns.map ((key) => 
+                      Object.keys(columns).map ((key) => 
                         (key != 'id') ? (
                           <td>
                             <InputWrapper 
@@ -164,7 +168,7 @@ export default class Sets extends React.Component {
             {
             this.props.data.map((row, index) =>
               <tr>{
-                columns.map((key) =>
+                Object.keys(columns).map((key) =>
                   <td id={`${key}:${index}`}>
                     <InputWrapper
                       value={row[key]}

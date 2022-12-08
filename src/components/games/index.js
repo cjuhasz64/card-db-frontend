@@ -3,7 +3,10 @@ import './style.scss'
 import InputWrapper from '../input_wrapper/index.js';
 import HeaderOptions from '../header_options/index.js';
 
-const columns = ['id','name'];
+const columns = {
+  'id':'x',
+  'name':'Name',
+};
 
 // http://localhost:3000/api/v1/teams
 export default class Games extends React.Component {
@@ -47,14 +50,14 @@ export default class Games extends React.Component {
 
   handleEditConfirm (value, isEdited) {
 
-    this.state.updateData[columns[this.state.editCounter]] = value;
+    this.state.updateData[Object.keys(columns)[this.state.editCounter]] = value;
     this.state.editCounter++;
   
     if (isEdited) {
       this.state.rowIsEdited = true;
     }
   
-    if (Object.keys(this.state.updateData).length === columns.length) {
+    if (Object.keys(this.state.updateData).length === Object.keys(columns).length) {
       if (this.state.rowIsEdited === true) {
         this.props.handleUpdate(this.state.updateData)
         this.state.rowIsEdited = false;
@@ -95,7 +98,7 @@ export default class Games extends React.Component {
   }
 
   handleCreateConfirm(value, createIsValid) {
-    this.state.updateData[columns[this.state.createCounter]] = value;
+    this.state.updateData[Object.keys(columns)[this.state.createCounter]] = value;
     this.state.createCounter++;
 
     if (!createIsValid) {
@@ -103,7 +106,7 @@ export default class Games extends React.Component {
     } 
 
     console.log(this.state.updateData)
-    if (Object.keys(this.state.updateData).length === columns.length - 1) {
+    if (Object.keys(this.state.updateData).length === Object.keys(columns).length - 1) {
       
       if (this.state.createIsValid) {
         this.props.handleCreate(this.state.updateData)  
@@ -132,7 +135,7 @@ export default class Games extends React.Component {
         <table>
           <thead>
             <tr>
-              {columns.map((key) => <th key={key}>{key}</th>)}
+            {Object.keys(columns).map((key) => <th key={key}>{columns[key]}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -160,7 +163,7 @@ export default class Games extends React.Component {
             {
             this.props.data.map((row, index) =>
               <tr>{
-                columns.map((key) =>
+                Object.keys(columns).map((key) =>
                   <td id={`${key}:${index}`}>
                     <InputWrapper
                       value={row[key]}
