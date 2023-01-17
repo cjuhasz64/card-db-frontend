@@ -99,6 +99,7 @@ export default class Sets extends React.Component {
   }
 
   handleCreateConfirm(value, createIsValid) {
+    console.log("+++++++++" + value)
     this.state.updateData[Object.keys(columns)[this.state.createCounter]] = value;
     this.state.createCounter++;
 
@@ -150,6 +151,7 @@ export default class Sets extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (
@@ -195,6 +197,7 @@ export default class Sets extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (

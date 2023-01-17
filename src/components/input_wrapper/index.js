@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import fetchApi from '../../util/fetchApi';
 import Select from 'react-select';
+import { json } from 'react-router-dom';
 
 function InputWrapper(props) {
 
@@ -8,7 +9,9 @@ function InputWrapper(props) {
   const [currentValue, setCurrentValue] = useState(props.value);
   const [defaultValue, setDefaultValue] = useState(props.value);
   const [isEdited, setIsEdited] = useState(false);
+  const [linkDataIsEdited, setLinkDataIsEdited] = useState(false);
   const [foreignValue, setForeignValue] = useState('');
+  const [linkDataList, setLinkDataList] = useState(null);
 
   const { 
     handleDoubleClick, 
@@ -17,13 +20,24 @@ function InputWrapper(props) {
     currentAction, 
     actionActiveState, 
     handleCreateConfirm,
-    foreignData
+    foreignData,
+    isMulti,
+    isCreating,
+    rowId,
+    linkData
   } = props;
 
+  function prepareDataView (data) {
+    let output = [];
+    data.forEach(element => {
+      output.push(`${element['name']}   `) 
+    })
+    return output;
+  }
   function prepareDataSelect (data) {
     let output = [];
     data.forEach(element => {
-      output.push({value:element['id'], label:element['name']})
+      output.push({value:element['id'], label:element['name']}) 
     });
     return output
   }
@@ -40,18 +54,27 @@ function InputWrapper(props) {
             handleActionCancel();
           } else {
             setDefaultValue(currentValue);
-            handleEditConfirm(currentValue, isEdited);
+            if (isMulti) {
+              handleEditConfirm(currentValue, isEdited, currentValue, linkDataIsEdited);
+            } else {
+              handleEditConfirm(currentValue, isEdited);
+            }
             setIsEdited(false);
+            setLinkDataIsEdited(false)
           }
         }
         break;
       case 'creating':
         if (actionActiveState === 'confirm') {
-          if (!props.value) {
-            if (typeof currentValue === 'undefined') {
-              handleCreateConfirm(currentValue, false);
+          if (isCreating) {
+            if (isMulti) {
+              handleCreateConfirm(currentValue, true, currentValue);
             } else {
-              handleCreateConfirm(currentValue, true);
+              if (typeof currentValue === 'undefined') {
+                handleCreateConfirm(currentValue, false);
+              } else {
+                handleCreateConfirm(currentValue, true);
+              }
             }
           }
         } else if (actionActiveState === 'cancel') {
@@ -64,59 +87,129 @@ function InputWrapper(props) {
           setCurrentValue(defaultValue);
         }
 
-        async function getForeignValue () {
-          if (foreignData) { 
-            var result = await fetchApi('get', `/v1/${Object.keys(foreignData)[0]}/${currentValue}`);
-            setForeignValue(result);
-          } 
+        if (foreignData) {
+          if (typeof foreignData[Object.keys(foreignData)[0]] != 'undefined') { 
+            foreignData[Object.keys(foreignData)[0]].forEach( element => {
+              if (element['id'] === currentValue) {
+                if (!foreignValue && currentValue) { 
+                  setForeignValue(element);
+                }
+              }
+            })
+          }
         }
-        if (!foreignValue) {
-          getForeignValue();
+
+        if (linkData) { 
+          if (typeof linkData[Object.keys(linkData)[0]] != 'undefined') {
+            var temp = [];
+            linkData[Object.keys(linkData)[0]].forEach( linkElement => {
+              if (linkElement['card_id'] === rowId) {
+                foreignData[Object.keys(foreignData)[0]].forEach( foreignElement => {
+                  if (foreignElement['id'] === linkElement['features_id']) {
+                    temp.push(foreignElement)
+                  }
+                })
+              }
+            }) 
+            setLinkDataList(temp)     
+          }
         }
+
         break;
     }
-  }, [currentAction, actionActiveState]);
+  }, [currentAction, actionActiveState, linkData, foreignData]);
 
   return (
+    
     <>
       {  
-      props.value ? (
-        foreignData? (
-          !displayEdit ? (
-            <span
+      !isCreating ? (
+        isMulti ? (
+          displayEdit ? ( 
+            props.value ? (
+              // <span>{ foreignValue['name'] }</span>
+              <Select
+                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+                onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+                isMulti
+                defaultValue={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
+                  return option.value === currentValue;
+                })} 
+              />
+            ) : (
+              <Select
+                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+                onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+                defaultValue={prepareDataSelect(linkDataList).filter( (option) => {
+                  return option.value;
+                })} 
+                isMulti
+              />
+            )
+          ) : (
+            props.value ? (
+              <span
               onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
                 { foreignValue['name'] }
-            </span>
+              </span>
+            ) : (
+              <span
+              onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
+                { linkDataList ? prepareDataView(linkDataList) : "loading" }
+              </span>
+            )
+          )
+        ) : (
+          foreignData? (
+            !displayEdit ? (
+              <span
+                onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
+                  { foreignValue['name'] }
+              </span>
+            ) : (
+              <Select
+                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+                onChange={e => {setIsEdited(true); setCurrentValue(e.value)}}
+                value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
+                  return option.value === currentValue;
+                })} 
+              />
+            )
+          ) : (
+            !displayEdit ? (
+              <span
+                onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
+                  { currentValue }
+              </span>
+            ) : (
+              <input
+                type="text"
+                value={currentValue}
+                onChange={(e) => {setCurrentValue(e.target.value); setIsEdited(true)}}
+                autoFocus
+              />
+            )
+          )
+
+        )
+      ) : (
+        foreignData ? (
+          isMulti ? ( 
+            <Select
+              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+              onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+              isMulti
+            />
+        
           ) : (
             <Select
               options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
               onChange={e => {setIsEdited(true); setCurrentValue(e.value)}}
               value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
-                return option.value === currentValue;
-              })} 
+                  return option.value === currentValue;
+                })} 
             />
           )
-        ) : (
-          !displayEdit ? (
-            <span
-              onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
-                { currentValue }
-            </span>
-          ) : (
-            <input
-              type="text"
-              value={currentValue}
-              onChange={(e) => {setCurrentValue(e.target.value); setIsEdited(true)}}
-              autoFocus
-            />
-          )
-        )
-      ) : (
-        foreignData ? (
-          <Select
-            options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-            onChange={e => {setIsEdited(true); setCurrentValue(e.value)}}
-          />
         ) : (
           <input
             type="text"

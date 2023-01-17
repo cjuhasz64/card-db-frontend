@@ -51,24 +51,22 @@ export default class Teams extends React.Component {
   }
 
   handleEditConfirm (value, isEdited) {
-
-    console.log(isEdited)
     this.state.updateData[Object.keys(columns)[this.state.editCounter]] = value;
     this.state.editCounter++;
   
     if (isEdited) {
       this.state.rowIsEdited = true;
     }
-  
     if (Object.keys(this.state.updateData).length === Object.keys(columns).length) {
       if (this.state.rowIsEdited === true) {
         this.props.handleUpdate(this.state.updateData)
         this.state.rowIsEdited = false;
       }
+      console.log(this.state.editCounter)
       this.state.updateData = {};
       this.state.editCounter = 0;
     }
- 
+    
     this.setState({
       actionActiveState: 'inactive',
       currentAction:'reading'
@@ -153,6 +151,7 @@ export default class Teams extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (
@@ -198,6 +197,7 @@ export default class Teams extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (

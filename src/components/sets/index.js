@@ -152,6 +152,7 @@ export default class Sets extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (
@@ -197,6 +198,7 @@ export default class Sets extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (

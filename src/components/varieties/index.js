@@ -150,6 +150,7 @@ export default class Varieties extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (
@@ -195,6 +196,7 @@ export default class Varieties extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (
