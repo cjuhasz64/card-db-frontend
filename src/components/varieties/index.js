@@ -97,7 +97,7 @@ export default class Varieties extends React.Component {
     })
   }
 
-  handleCreateConfirm(value, createIsValid) {
+  handleCreateConfirm(name, value, createIsValid) {
     this.state.updateData[Object.keys(columns)[this.state.createCounter]] = value;
     this.state.createCounter++;
 

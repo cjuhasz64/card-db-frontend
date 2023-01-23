@@ -12,6 +12,8 @@ function InputWrapper(props) {
   const [linkDataIsEdited, setLinkDataIsEdited] = useState(false);
   const [foreignValue, setForeignValue] = useState('');
   const [linkDataList, setLinkDataList] = useState(null);
+  const [selectDisabled, setSelectDisabled] = useState(true)
+  const [selectFilter, setSelectFilter] = useState(null)
 
   const { 
     handleDoubleClick, 
@@ -24,25 +26,57 @@ function InputWrapper(props) {
     isMulti,
     isCreating,
     rowId,
-    linkData
+    linkData,
+    name,
+    rowNo,
+    detectCheckPrereq,
+    activateInput,
+    isDisabled
   } = props;
 
   function prepareDataView (data) {
     let output = [];
     data.forEach(element => {
-      output.push(`${element['name']}   `) 
+      output.push(`${element['name']}`) 
     })
     return output;
   }
   function prepareDataSelect (data) {
     let output = [];
     data.forEach(element => {
-      output.push({value:element['id'], label:element['name']}) 
+      if (selectFilter) {
+        Object.keys(element).forEach(key => {
+          if (element[key] === selectFilter) {
+            output.push({value:element['id'], label:`${element['name']}${(element['year'] ? element['year'] : '')}`}) 
+          }
+        })
+    
+      } else {
+        output.push({value:element['id'], label:element['name']}) 
+      }
+      
     });
     return output
   }
 
   useEffect(() => {
+    if (activateInput) {      
+      activateInput.forEach(e => {
+        if (e.split(',')[0] === rowNo.toString() && e.split(',')[1] === name) {
+          if (e.split(',')[2] === 'disable') {
+            console.log(e + "   DISABLE")
+            // TODO::::   clear input value
+            setSelectDisabled(true)
+            setSelectFilter(e.split(',')[2])
+          } else {
+            setSelectDisabled(false)
+            setSelectFilter(e.split(',')[2])
+
+          }
+        }  
+      });
+    }
+    
     switch (currentAction) {
       case 'updating':
         if (actionActiveState === 'cancel') {
@@ -65,20 +99,26 @@ function InputWrapper(props) {
         }
         break;
       case 'creating':
+
+        if (!isDisabled) {
+          setSelectDisabled(false)
+        }
+
         if (actionActiveState === 'confirm') {
           if (isCreating) {
             if (isMulti) {
-              handleCreateConfirm(currentValue, true, currentValue);
+              handleCreateConfirm(name, currentValue, true, currentValue);
             } else {
               if (typeof currentValue === 'undefined') {
-                handleCreateConfirm(currentValue, false);
+                handleCreateConfirm(name, currentValue, false);
               } else {
-                handleCreateConfirm(currentValue, true);
+                handleCreateConfirm(name, currentValue, true);
               }
             }
           }
         } else if (actionActiveState === 'cancel') {
           handleActionCancel();
+          
         }
         break;
       case 'reading':  
@@ -117,7 +157,7 @@ function InputWrapper(props) {
 
         break;
     }
-  }, [currentAction, actionActiveState, linkData, foreignData]);
+  }, [currentAction, actionActiveState, linkData, foreignData, activateInput]);
 
   return (
     
@@ -135,6 +175,7 @@ function InputWrapper(props) {
                 defaultValue={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
                   return option.value === currentValue;
                 })} 
+             
               />
             ) : (
               <Select
@@ -144,6 +185,7 @@ function InputWrapper(props) {
                   return option.value;
                 })} 
                 isMulti
+          
               />
             )
           ) : (
@@ -169,10 +211,16 @@ function InputWrapper(props) {
             ) : (
               <Select
                 options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-                onChange={e => {setIsEdited(true); setCurrentValue(e.value)}}
+                onChange={e => {
+                  setIsEdited(true); 
+                  if (activateInput != null) {
+                    detectCheckPrereq(name, e.value, rowNo, currentValue)
+                  };
+                  setCurrentValue(e.value)}}
                 value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
-                  return option.value === currentValue;
-                })} 
+                    return option.value === currentValue;
+                  })} 
+                isDisabled={selectDisabled}
               />
             )
           ) : (
@@ -190,7 +238,6 @@ function InputWrapper(props) {
               />
             )
           )
-
         )
       ) : (
         foreignData ? (
@@ -199,15 +246,22 @@ function InputWrapper(props) {
               options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
               onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
               isMulti
+              isDisabled={selectDisabled}
             />
         
           ) : (
             <Select
               options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-              onChange={e => {setIsEdited(true); setCurrentValue(e.value)}}
+              onChange={e => {
+                setIsEdited(true); 
+                if (activateInput != null) {
+                  detectCheckPrereq(name, e.value, rowNo, currentValue)
+                };
+                setCurrentValue(e.value)}}
               value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
                   return option.value === currentValue;
                 })} 
+              isDisabled={selectDisabled}
             />
           )
         ) : (

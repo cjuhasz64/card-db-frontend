@@ -14,7 +14,7 @@ const foreignKeys = {
   'sets':['games'],
   'varieties':['sets'],
   'features':['teams'],
-  'cards':['features','varieties', 'features_link']
+  'cards':['features','varieties', 'features_link', 'games', 'sets', 'teams']
 }
 
 export default class MasterPage extends React.Component {
@@ -90,10 +90,9 @@ export default class MasterPage extends React.Component {
     }
   }
 
-  async handleDelete(row) {
-    //console.log("MMMMMMMMMMMMMMMMM" + JSON.stringify(row))
+  async handleDelete(id) {
     try {
-      await fetchApi('delete', `/v1/${this.state.activePage}/${row['id']}`);
+      await fetchApi('delete', `/v1/${this.state.activePage}/${id}`);
       await this.fetchResources();
     } catch (error) {
       console.log(error)
@@ -101,7 +100,7 @@ export default class MasterPage extends React.Component {
   }
 
   async handleCreate(data, endpoint) {
-    //console.log("MMMMMMMMMMMMMMMMM" + JSON.stringify(data))
+    console.log(data)
     if (endpoint) {
       console.log(JSON.stringify(data) + "      " + endpoint)
       try {

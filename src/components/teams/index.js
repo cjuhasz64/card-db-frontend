@@ -51,6 +51,7 @@ export default class Teams extends React.Component {
   }
 
   handleEditConfirm (value, isEdited) {
+    console.log("++++" + value)
     this.state.updateData[Object.keys(columns)[this.state.editCounter]] = value;
     this.state.editCounter++;
   
@@ -98,7 +99,8 @@ export default class Teams extends React.Component {
     })
   }
 
-  handleCreateConfirm(value, createIsValid) {
+  handleCreateConfirm(name, value, createIsValid) {
+    console.log("++++" + value)
     this.state.updateData[Object.keys(columns)[this.state.createCounter]] = value;
     this.state.createCounter++;
 
