@@ -60,7 +60,10 @@ function InputWrapper(props) {
   }
 
   useEffect(() => {
-    if (activateInput) {      
+    // /console.log(props.value)
+    // console.log(name + foreignData)
+    if (activateInput) {   
+      console.log(activateInput)  
       activateInput.forEach(e => {
         if (e.split(',')[0] === rowNo.toString() && e.split(',')[1] === name) {
           if (e.split(',')[2] === 'disable') {
@@ -125,20 +128,26 @@ function InputWrapper(props) {
         if (actionActiveState === 'inactive') {
           setDisplayEdit(false);
           setCurrentValue(defaultValue);
+
+          // POSSIBLE SOURCE OF BUG
+          setSelectDisabled(false)
         }
 
         if (foreignData) {
           if (typeof foreignData[Object.keys(foreignData)[0]] != 'undefined') { 
             foreignData[Object.keys(foreignData)[0]].forEach( element => {
-              if (element['id'] === currentValue) {
-                if (!foreignValue && currentValue) { 
+              //console.log(currentValue)
+              if (element['id'] === props.value) {
+                if (!foreignValue && props.value) { 
                   setForeignValue(element);
                 }
               }
             })
           }
         }
+        
 
+        // not scalable
         if (linkData) { 
           if (typeof linkData[Object.keys(linkData)[0]] != 'undefined') {
             var temp = [];
@@ -206,7 +215,11 @@ function InputWrapper(props) {
             !displayEdit ? (
               <span
                 onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
+                  {/* dwadwad */}
                   { foreignValue['name'] }
+                  {/* { JSON.stringify(foreignData) } */}
+                  {/* { JSON.stringify(foreignValue) } */}
+                  {/* { JSON.stringify(props.value) } */}
               </span>
             ) : (
               <Select

@@ -74,19 +74,50 @@ export default class Cards extends React.Component {
     this.detectCheckPrereq = this.detectCheckPrereq.bind(this);
   }
 
+  findDataRow(id, data) {
+    var result;
+    if (data) {
+      data.forEach(element =>{
+        if (element['id'] === id) {
+          result = element
+        }
+      })
+    }
+    
+    return result
+  }
 
-  // function that triggers on dropdown select
-      //.....
+  getAssociatedId (targetTable, currentRowData) {
+    var currentCol, result, dataRow;
+    
+    if (currentRowData) {
+      if (Object.keys(currentRowData).includes(targetTable)) {
+        return currentRowData[targetTable]
+      } else {
+        for (let i = 0; i < Object.keys(currentRowData).length; i++) {
+          currentCol = Object.keys(currentRowData)[i];
 
-  // TODO
-  //  - pass in name of input, to input
+          if (currentCol.includes('_id')) {
+            dataRow = this.findDataRow(currentRowData[currentCol], this.props.foreignData[getForeignName(currentCol)])
+            result = this.getAssociatedId(targetTable, dataRow)
+            if (result !== false) return result
+          }
 
-  // changing game option, etc. must be handled also. 
+          if (currentCol.includes('_list')) {
+            dataRow = this.findDataRow(currentRowData[currentCol], this.props.foreignData[getForeignName(currentCol)])
+            result = this.getAssociatedId(targetTable, dataRow)
+            if (result !== false) return result
+          }
+        }
 
+        return false;
+      }
+    }
+  }
 
-
-  // function passed in through input props
   detectCheckPrereq (inputName, inputValue, rowNo, hadValue) {
+    // would break if there were more layer of prereq, and 
+    // and the input changed wasnt default.
 
     if (hadValue && prereqEntries['default'].includes(inputName)) {
       this.setState({
@@ -113,7 +144,6 @@ export default class Cards extends React.Component {
       })) 
     });
   }
-
 
 
 
@@ -362,7 +392,8 @@ export default class Cards extends React.Component {
                     <InputWrapper 
                       name={key}
                       rowNo={index}
-                      value={row[key]}
+                      // value={row[key]}
+                      value={Object.keys(prereqEntries).includes(key) ?(this.getAssociatedId(key, row, 1)) : row[key]}
                       foreignData={key.includes('_id') || key.includes('_list') ? 
                       {[`${getForeignName(key)}`]:this.props.foreignData[getForeignName(key)]} : null}
                       linkData={key.includes('_list') ? {[`${getForeignName(key, true)}`]:this.props.foreignData[getForeignName(key, true)]} : null}
