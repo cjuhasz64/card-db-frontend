@@ -1,3 +1,22 @@
+
+CRUD APPLICATION FOR TRADING CARD COLLECTION
+
+Double click a cell to edit it.
+
+================================================
+TODO:
+  - Implement update for foreign values
+    + Need to consider prereq entries (option to be changed dynamically filtered on update)
+  - Filters for read
+  - Sorting for read
+  - Overall code cleanup
+  - CSS improvements
+  - Bulk editing
+
+  Planning give public access to only reading cards page. Auth will be required to read any other data and use CUD functionality
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
