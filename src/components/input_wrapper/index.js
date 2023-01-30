@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import fetchApi from '../../util/fetchApi';
 import Select from 'react-select';
+import { json } from 'react-router-dom';
 
 function InputWrapper(props) {
 
@@ -8,7 +9,11 @@ function InputWrapper(props) {
   const [currentValue, setCurrentValue] = useState(props.value);
   const [defaultValue, setDefaultValue] = useState(props.value);
   const [isEdited, setIsEdited] = useState(false);
+  const [linkDataIsEdited, setLinkDataIsEdited] = useState(false);
   const [foreignValue, setForeignValue] = useState('');
+  const [linkDataList, setLinkDataList] = useState(null);
+  const [selectDisabled, setSelectDisabled] = useState(true)
+  const [selectFilter, setSelectFilter] = useState(null)
 
   const { 
     handleDoubleClick, 
@@ -17,18 +22,64 @@ function InputWrapper(props) {
     currentAction, 
     actionActiveState, 
     handleCreateConfirm,
-    foreignData
+    foreignData,
+    isMulti,
+    isCreating,
+    rowId,
+    linkData,
+    name,
+    rowNo,
+    detectCheckPrereq,
+    activateInput,
+    isDisabled
   } = props;
 
+  function prepareDataView (data) {
+    let output = [];
+    data.forEach(element => {
+      output.push(`${element['name']}`) 
+    })
+    return output;
+  }
   function prepareDataSelect (data) {
     let output = [];
     data.forEach(element => {
-      output.push({value:element['id'], label:element['name']})
+      if (selectFilter) {
+        Object.keys(element).forEach(key => {
+          if (element[key] === selectFilter) {
+            output.push({value:element['id'], label:`${element['name']}${(element['year'] ? element['year'] : '')}`}) 
+          }
+        })
+    
+      } else {
+        output.push({value:element['id'], label:element['name']}) 
+      }
+      
     });
     return output
   }
 
   useEffect(() => {
+    // /console.log(props.value)
+    // console.log(name + foreignData)
+    if (activateInput) {   
+      console.log(activateInput)  
+      activateInput.forEach(e => {
+        if (e.split(',')[0] === rowNo.toString() && e.split(',')[1] === name) {
+          if (e.split(',')[2] === 'disable') {
+            console.log(e + "   DISABLE")
+            // TODO::::   clear input value
+            setSelectDisabled(true)
+            setSelectFilter(e.split(',')[2])
+          } else {
+            setSelectDisabled(false)
+            setSelectFilter(e.split(',')[2])
+
+          }
+        }  
+      });
+    }
+    
     switch (currentAction) {
       case 'updating':
         if (actionActiveState === 'cancel') {
@@ -40,83 +91,192 @@ function InputWrapper(props) {
             handleActionCancel();
           } else {
             setDefaultValue(currentValue);
-            handleEditConfirm(currentValue, isEdited);
+            if (isMulti) {
+              handleEditConfirm(currentValue, isEdited, currentValue, linkDataIsEdited);
+            } else {
+              handleEditConfirm(currentValue, isEdited);
+            }
             setIsEdited(false);
+            setLinkDataIsEdited(false)
           }
         }
         break;
       case 'creating':
+
+        if (!isDisabled) {
+          setSelectDisabled(false)
+        }
+
         if (actionActiveState === 'confirm') {
-          if (!props.value) {
-            if (typeof currentValue === 'undefined') {
-              handleCreateConfirm(currentValue, false);
+          if (isCreating) {
+            if (isMulti) {
+              handleCreateConfirm(name, currentValue, true, currentValue);
             } else {
-              handleCreateConfirm(currentValue, true);
+              if (typeof currentValue === 'undefined') {
+                handleCreateConfirm(name, currentValue, false);
+              } else {
+                handleCreateConfirm(name, currentValue, true);
+              }
             }
           }
         } else if (actionActiveState === 'cancel') {
           handleActionCancel();
+          
         }
         break;
       case 'reading':  
         if (actionActiveState === 'inactive') {
           setDisplayEdit(false);
           setCurrentValue(defaultValue);
+
+          // POSSIBLE SOURCE OF BUG
+          setSelectDisabled(false)
         }
 
-        async function getForeignValue () {
-          if (foreignData) { 
-            var result = await fetchApi('get', `/v1/${Object.keys(foreignData)[0]}/${currentValue}`);
-            setForeignValue(result);
-          } 
+        if (foreignData) {
+          if (typeof foreignData[Object.keys(foreignData)[0]] != 'undefined') { 
+            foreignData[Object.keys(foreignData)[0]].forEach( element => {
+              //console.log(currentValue)
+              if (element['id'] === props.value) {
+                if (!foreignValue && props.value) { 
+                  setForeignValue(element);
+                }
+              }
+            })
+          }
         }
-        if (!foreignValue) {
-          getForeignValue();
+        
+
+        // not scalable
+        if (linkData) { 
+          if (typeof linkData[Object.keys(linkData)[0]] != 'undefined') {
+            var temp = [];
+            linkData[Object.keys(linkData)[0]].forEach( linkElement => {
+              if (linkElement['card_id'] === rowId) {
+                foreignData[Object.keys(foreignData)[0]].forEach( foreignElement => {
+                  if (foreignElement['id'] === linkElement['features_id']) {
+                    temp.push(foreignElement)
+                  }
+                })
+              }
+            }) 
+            setLinkDataList(temp)     
+          }
         }
+
         break;
     }
-  }, [currentAction, actionActiveState]);
+  }, [currentAction, actionActiveState, linkData, foreignData, activateInput]);
 
   return (
+    
     <>
       {  
-      props.value ? (
-        foreignData? (
-          !displayEdit ? (
-            <span
+      !isCreating ? (
+        isMulti ? (
+          displayEdit ? ( 
+            props.value ? (
+              // <span>{ foreignValue['name'] }</span>
+              <Select
+                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+                onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+                isMulti
+                defaultValue={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
+                  return option.value === currentValue;
+                })} 
+             
+              />
+            ) : (
+              <Select
+                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+                onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+                defaultValue={prepareDataSelect(linkDataList).filter( (option) => {
+                  return option.value;
+                })} 
+                isMulti
+          
+              />
+            )
+          ) : (
+            props.value ? (
+              <span
               onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
                 { foreignValue['name'] }
-            </span>
-          ) : (
-            <Select
-              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-              onChange={e => {setIsEdited(true); setCurrentValue(e.value)}}
-              value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
-                return option.value === currentValue;
-              })} 
-            />
+              </span>
+            ) : (
+              <span
+              onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
+                { linkDataList ? prepareDataView(linkDataList) : "loading" }
+              </span>
+            )
           )
         ) : (
-          !displayEdit ? (
-            <span
-              onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
-                { currentValue }
-            </span>
+          foreignData? (
+            !displayEdit ? (
+              <span
+                onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
+                  {/* dwadwad */}
+                  { foreignValue['name'] }
+                  {/* { JSON.stringify(foreignData) } */}
+                  {/* { JSON.stringify(foreignValue) } */}
+                  {/* { JSON.stringify(props.value) } */}
+              </span>
+            ) : (
+              <Select
+                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+                onChange={e => {
+                  setIsEdited(true); 
+                  if (activateInput != null) {
+                    detectCheckPrereq(name, e.value, rowNo, currentValue)
+                  };
+                  setCurrentValue(e.value)}}
+                value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
+                    return option.value === currentValue;
+                  })} 
+                isDisabled={selectDisabled}
+              />
+            )
           ) : (
-            <input
-              type="text"
-              value={currentValue}
-              onChange={(e) => {setCurrentValue(e.target.value); setIsEdited(true)}}
-              autoFocus
-            />
+            !displayEdit ? (
+              <span
+                onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
+                  { currentValue }
+              </span>
+            ) : (
+              <input
+                type="text"
+                value={currentValue}
+                onChange={(e) => {setCurrentValue(e.target.value); setIsEdited(true)}}
+                autoFocus
+              />
+            )
           )
         )
       ) : (
         foreignData ? (
-          <Select
-            options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-            onChange={e => {setIsEdited(true); setCurrentValue(e.value)}}
-          />
+          isMulti ? ( 
+            <Select
+              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+              onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+              isMulti
+              isDisabled={selectDisabled}
+            />
+        
+          ) : (
+            <Select
+              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+              onChange={e => {
+                setIsEdited(true); 
+                if (activateInput != null) {
+                  detectCheckPrereq(name, e.value, rowNo, currentValue)
+                };
+                setCurrentValue(e.value)}}
+              value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
+                  return option.value === currentValue;
+                })} 
+              isDisabled={selectDisabled}
+            />
+          )
         ) : (
           <input
             type="text"

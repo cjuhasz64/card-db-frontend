@@ -51,24 +51,23 @@ export default class Teams extends React.Component {
   }
 
   handleEditConfirm (value, isEdited) {
-
-    console.log(isEdited)
+    console.log("++++" + value)
     this.state.updateData[Object.keys(columns)[this.state.editCounter]] = value;
     this.state.editCounter++;
   
     if (isEdited) {
       this.state.rowIsEdited = true;
     }
-  
     if (Object.keys(this.state.updateData).length === Object.keys(columns).length) {
       if (this.state.rowIsEdited === true) {
         this.props.handleUpdate(this.state.updateData)
         this.state.rowIsEdited = false;
       }
+      console.log(this.state.editCounter)
       this.state.updateData = {};
       this.state.editCounter = 0;
     }
- 
+    
     this.setState({
       actionActiveState: 'inactive',
       currentAction:'reading'
@@ -100,7 +99,8 @@ export default class Teams extends React.Component {
     })
   }
 
-  handleCreateConfirm(value, createIsValid) {
+  handleCreateConfirm(name, value, createIsValid) {
+    console.log("++++" + value)
     this.state.updateData[Object.keys(columns)[this.state.createCounter]] = value;
     this.state.createCounter++;
 
@@ -129,8 +129,50 @@ export default class Teams extends React.Component {
   renderTable() {
     if (this.props.data.length === 0) {
       return (
-        <div>No Data to be displayed</div>
-      )
+        this.state.currentAction === 'creating' ? ( 
+          <table>
+            <thead>
+              <tr>
+                {Object.keys(columns).map((key) => <th key={key}>{columns[key]}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+              {
+                this.state.currentAction === 'creating' ? (
+                  <>
+                    <td/>
+                    {
+                      Object.keys(columns).map ((key) => 
+                        (key != 'id') ? (
+                          <td>
+                            <InputWrapper 
+                              foreignData={key.includes('_id') ? 
+                              {[`${pluralize(getForeignName(key))}`]:this.props.foreignData[pluralize(getForeignName(key))]} : null}
+                              currentAction={this.state.currentAction}
+                              actionActiveState={this.state.actionActiveState}
+                              handleCreateConfirm={this.handleCreateConfirm}
+                              handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
+                            />
+                          </td>
+                        ) : (
+                          null
+                        )
+                      )
+                    } 
+                  </>
+                ) : (
+                  <></>
+                )
+              }
+              </tr>
+            </tbody>
+          </table>
+        ) : (
+          <span>No data to be displayed</span>
+        )
+      ) 
     }
     return (
       <>
@@ -157,11 +199,14 @@ export default class Teams extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
+                              isCreating={true}
                             />
                           </td>
                         ) : (
                           null
-                        ))} 
+                        )
+                      )
+                    } 
                   </>
                 ) : (
                   <></>

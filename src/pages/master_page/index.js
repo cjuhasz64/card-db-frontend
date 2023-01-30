@@ -7,15 +7,15 @@ import Games from "../../components/games";
 import Sets from "../../components/sets";
 import Varieties from "../../components/varieties";
 import "./style.css"
+import { v4 } from 'uuid';
 
 const foreignKeys = {
   'teams':['games'],
   'sets':['games'],
   'varieties':['sets'],
   'features':['teams'],
-  'cards':['features','varieties']
+  'cards':['features','varieties', 'features_link', 'games', 'sets', 'teams']
 }
-
 
 export default class MasterPage extends React.Component {
 
@@ -33,7 +33,6 @@ export default class MasterPage extends React.Component {
     this.handleDelete = this.handleDelete.bind(this)
     this.handleUpdate = this.handleUpdate.bind(this)
     this.handleCreate = this.handleCreate.bind(this)
-
   }
 
   componentDidMount() {
@@ -56,7 +55,6 @@ export default class MasterPage extends React.Component {
 
   async fetchResources() {
     try {
-      // had to do three seperate setState so render would happen after new data was retrieved
       this.setState({
         inFlight: 'fetching',
       })
@@ -77,8 +75,7 @@ export default class MasterPage extends React.Component {
             this.setState({
               foreignData: {[`${element}`]:current}
             })
-          }
-          //console.log(this.state.foreignData) 
+          } 
         });
       }
       
@@ -102,22 +99,62 @@ export default class MasterPage extends React.Component {
     }
   }
 
-  async handleCreate(data) {
+  async handleCreate(data, endpoint) {
+    console.log(data)
+    if (endpoint) {
+      console.log(JSON.stringify(data) + "      " + endpoint)
+      try {
+        await fetchApi('post', `/v1/${endpoint}`, data);
+        await this.fetchResources();
+      } catch (error) {
+        console.log(error)
+      }
+    } else {
+      try {
+        await fetchApi('post', `/v1/${this.state.activePage}`, data);
+        await this.fetchResources();
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    
+  }
+
+  async handleCreateLink (linkData, primaryLinkId, primaryLinkTable) {
     try {
-      await fetchApi('post', `/v1/${this.state.activePage}`, data);
-      await this.fetchResources();
+      Object.keys(linkData).forEach(table => {
+        var preparedData = {[`${primaryLinkTable}_id`]:`${primaryLinkId}`};
+        linkData[table].forEach(element => {
+          preparedData[`${table}_id`] = element.value; 
+          this.handleCreate(preparedData, `${table}_link`)
+        });  
+      });
     } catch (error) {
       console.log(error)
     }
   }
 
-  async handleUpdate(data) {
-    console.log(data['id'])
-    try {
-      await fetchApi('put', `/v1/${this.state.activePage}/${data['id']}`, data);
-      await this.fetchResources();
-    } catch (error) {
-      console.log(error)
+  async handleUpdate(data, recreate, linkData, primaryTable) {
+
+    var temp = {...data};
+    temp['id'] = v4();
+
+    if (recreate) {
+      try {
+        await fetchApi('delete', `/v1/${this.state.activePage}/${data['id']}`, data);
+        await fetchApi('post', `/v1/${this.state.activePage}`, temp);
+        await this.handleCreateLink(linkData, temp['id'], primaryTable)
+        await this.fetchResources();
+      } catch (error) {
+        console.log(error)
+      }
+    } else {
+      try {
+        await fetchApi('put', `/v1/${this.state.activePage}/${data['id']}`, data);
+        await this.fetchResources();
+      } catch (error) {
+        console.log(error)
+      }
     }
   }
 
@@ -135,7 +172,6 @@ export default class MasterPage extends React.Component {
     }
 
     if (this.state.inFlight === 'done') {
-      { console.log("draw") }
       switch (this.state.activePage) {
         case "cards":
           return (
@@ -147,6 +183,7 @@ export default class MasterPage extends React.Component {
                 handleDelete={this.handleDelete}
                 handleUpdate={this.handleUpdate}
                 handleCreate={this.handleCreate}
+                handleCreateLink={this.handleCreateLink}
               />
             </>
           )
