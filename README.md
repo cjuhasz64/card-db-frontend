@@ -17,7 +17,7 @@ TODO:
   Planning give public access to only reading cards page. Auth will be required to read any other data and use CUD functionality
   
   Known Bugs:
-  - You can create a card, then change the game linked to said cards set within the set table. Create a card with a set that should exist
+  - You can create a card, then change the game linked to said cards set within the set table. Creating a card with a set that should exist
 
 
 
