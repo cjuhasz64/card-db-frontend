@@ -18,7 +18,10 @@ TODO:
   
   Known Bugs:
   - You can create a card, then change the game linked to said cards set within the set table. Creating a card with a set that should exist. This is the same for the team.
-    + Inform the user that theyre changing one of the two, they are linked together via a card, therefor resulting in the others game also being changed
+    + Inform the user that theyre changing one of the two, they are linked together via a card, therefor resulting in the others game also being changed    
+  - Feature Input should clear on prereq check, for both create and update
+  - Update it bugged on cards
+
 
 
 
