@@ -97,9 +97,9 @@ function InputWrapper(props) {
           } else {
             setDefaultValue(currentValue);
             if (isMulti) {
-              handleEditConfirm(currentValue, isEdited, currentValue, linkDataIsEdited);
+              handleEditConfirm(name, currentValue, isEdited, currentValue, linkDataIsEdited);
             } else {
-              handleEditConfirm(currentValue, isEdited);
+              handleEditConfirm(name, currentValue, isEdited);
             }
             setIsEdited(false);
             setLinkDataIsEdited(false)

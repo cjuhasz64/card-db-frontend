@@ -114,6 +114,9 @@ export default class Cards extends React.Component {
           }
 
           if (currentCol.includes('_list')) {
+
+            // needs to handle if multiple featureds
+
             dataRow = this.findDataRow(currentRowData[currentCol], this.props.foreignData[getForeignName(currentCol)])
             result = this.getAssociatedId(targetTable, dataRow)
             if (result !== false) return result
@@ -174,48 +177,52 @@ export default class Cards extends React.Component {
     })
   }
 
-  handleEditConfirm (value, isEdited, linkData, linkDataIsEdited) {
-    if (isEdited) {
-      this.state.rowIsEdited = true;
-    }
+  handleEditConfirm (name, value, isEdited, linkData, linkDataIsEdited) {
     
-    if (linkDataIsEdited) {
-      this.state.multiIsChanged = true;
-    }
-  
-    if (linkData) {
-      if (linkData.length > 1 && linkData.length < 20) {
-        this.state.updateData[columns[this.state.editCounter]] = null;
-        this.state.linkData[getForeignName(columns[this.state.editCounter])] = linkData
-      } else {
-        this.state.updateData[columns[this.state.editCounter]] = value[0]['value'];
-      }
-    } else {
-      this.state.updateData[columns[this.state.editCounter]] = value;
-    }
-    this.state.editCounter++;
-
-    if (Object.keys(this.state.updateData).length === columns.length) {
-      if (this.state.rowIsEdited === true) {
-        if (this.state.multiIsChanged) {
-          if (Object.keys(this.state.linkData).length > 0) {
-            this.props.handleUpdate(this.state.updateData, true, this.state.linkData, 'card')
-          } else {
-            this.props.handleUpdate(this.state.updateData, true)
-          }
-          this.state.multiIsChanged = false;
-        } else {
-          this.props.handleUpdate(this.state.updateData)
-        } 
-        this.state.rowIsEdited = false;
+    if (columns.includes(name))
+    {
+      if (isEdited) {
+        this.state.rowIsEdited = true;
       }
       
-      this.state.updateData = {};
-      this.state.editCounter = 0;
-      this.state.linkData = {};
+      if (linkDataIsEdited) {
+        this.state.multiIsChanged = true;
+      }
+    
+      if (linkData) {
+        if (linkData.length > 1 && linkData.length < 20) {
+          this.state.updateData[columns[this.state.editCounter]] = null;
+          this.state.linkData[getForeignName(columns[this.state.editCounter])] = linkData
+        } else {
+          this.state.updateData[columns[this.state.editCounter]] = value[0]['value'];
+        }
+      } else {
+        this.state.updateData[columns[this.state.editCounter]] = value;
+      }
+      this.state.editCounter++;
   
+      if (Object.keys(this.state.updateData).length === columns.length) {
+        if (this.state.rowIsEdited === true) {
+          if (this.state.multiIsChanged) {
+            if (Object.keys(this.state.linkData).length > 0) {
+              this.props.handleUpdate(this.state.updateData, true, this.state.linkData, 'card')
+            } else {
+              this.props.handleUpdate(this.state.updateData, true)
+            }
+            this.state.multiIsChanged = false;
+          } else {
+            this.props.handleUpdate(this.state.updateData)
+          } 
+          this.state.rowIsEdited = false;
+        }
+        
+        this.state.updateData = {};
+        this.state.editCounter = 0;
+        this.state.linkData = {};
+    
+      }
     }
- 
+
     this.setState({
       actionActiveState: 'inactive',
       currentAction:'reading'
@@ -249,12 +256,8 @@ export default class Cards extends React.Component {
   }
 
   async handleCreateConfirm(name, value, createIsValid, linkData) {
-
     if (columns.includes(name))
     {
-      console.log()
-    
-
       if (linkData) {
         if (linkData.length > 1) {
           this.state.updateData[columns[this.state.createCounter]] = null;
