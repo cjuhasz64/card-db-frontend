@@ -31,7 +31,8 @@ function InputWrapper(props) {
     rowNo,
     detectCheckPrereq,
     activateInput,
-    isDisabled
+    isDisabled,
+    defaultFilter
   } = props;
 
   function prepareDataView (data) {
@@ -60,7 +61,9 @@ function InputWrapper(props) {
   }
 
   useEffect(() => {
-  
+    if (defaultFilter && selectFilter === null) {
+      setSelectFilter(defaultFilter)
+    }
     
     if (activateInput && activateInput.length > 0) {   
       //console.log(activateInput)  

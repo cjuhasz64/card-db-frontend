@@ -74,6 +74,18 @@ export default class Cards extends React.Component {
     this.detectCheckPrereq = this.detectCheckPrereq.bind(this);
   }
 
+  getKeyByValue(array, value) {
+    var result = null;
+    if (array) {
+      Object.keys(array).forEach((key) => {
+        array[key].forEach(element => {
+          if (element === value) result = key
+        });
+      });
+    }
+    return result
+  }
+
   findDataRow(id, data) {
     var result;
     if (data) {
@@ -396,7 +408,7 @@ export default class Cards extends React.Component {
                       name={key}
                       rowNo={index}
                       // value={row[key]}
-                      value={Object.keys(prereqEntries).includes(key) ? this.getAssociatedId(key, row, 1) : row[key]}
+                      value={Object.keys(prereqEntries).includes(key) ? this.getAssociatedId(key, row) : row[key]}
                       foreignData={key.includes('_id') || key.includes('_list') ? 
                       {[`${getForeignName(key)}`]:this.props.foreignData[getForeignName(key)]} : null}
                       linkData={key.includes('_list') ? {[`${getForeignName(key, true)}`]:this.props.foreignData[getForeignName(key, true)]} : null}
@@ -410,6 +422,8 @@ export default class Cards extends React.Component {
                       rowId={row['id']}
                       detectCheckPrereq={this.detectCheckPrereq}
                       activateInput={this.state.activateInput}
+                      defaultFilter={this.getAssociatedId(this.getKeyByValue(prereqEntries, key), row)}
+                      
                     />
                   </td> 
                 )}
