@@ -60,10 +60,10 @@ function InputWrapper(props) {
   }
 
   useEffect(() => {
-    // /console.log(props.value)
-    // console.log(name + foreignData)
-    if (activateInput) {   
-      console.log(activateInput)  
+  
+    
+    if (activateInput && activateInput.length > 0) {   
+      //console.log(activateInput)  
       activateInput.forEach(e => {
         if (e.split(',')[0] === rowNo.toString() && e.split(',')[1] === name) {
           if (e.split(',')[2] === 'disable') {
@@ -72,8 +72,10 @@ function InputWrapper(props) {
             setSelectDisabled(true)
             setSelectFilter(e.split(',')[2])
           } else {
+            console.log(name + rowNo)
             setSelectDisabled(false)
             setSelectFilter(e.split(',')[2])
+            setDisplayEdit(true)
 
           }
         }  
@@ -126,6 +128,7 @@ function InputWrapper(props) {
         break;
       case 'reading':  
         if (actionActiveState === 'inactive') {
+          
           setDisplayEdit(false);
           setCurrentValue(defaultValue);
 
@@ -176,7 +179,7 @@ function InputWrapper(props) {
         isMulti ? (
           displayEdit ? ( 
             props.value ? (
-              // <span>{ foreignValue['name'] }</span>
+
               <Select
                 options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
                 onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
@@ -220,6 +223,7 @@ function InputWrapper(props) {
                   {/* { JSON.stringify(foreignData) } */}
                   {/* { JSON.stringify(foreignValue) } */}
                   {/* { JSON.stringify(props.value) } */}
+                  {/* { currentValue } */}
               </span>
             ) : (
               <Select
@@ -231,7 +235,8 @@ function InputWrapper(props) {
                   };
                   setCurrentValue(e.value)}}
                 value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
-                    return option.value === currentValue;
+                    if (currentValue) return option.value === currentValue
+                    else return option.value === props.value; // needed for distant foreign values
                   })} 
                 isDisabled={selectDisabled}
               />

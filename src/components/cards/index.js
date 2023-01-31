@@ -83,13 +83,11 @@ export default class Cards extends React.Component {
         }
       })
     }
-    
     return result
   }
 
   getAssociatedId (targetTable, currentRowData) {
     var currentCol, result, dataRow;
-    
     if (currentRowData) {
       if (Object.keys(currentRowData).includes(targetTable)) {
         return currentRowData[targetTable]
@@ -109,7 +107,6 @@ export default class Cards extends React.Component {
             if (result !== false) return result
           }
         }
-
         return false;
       }
     }
@@ -119,7 +116,13 @@ export default class Cards extends React.Component {
     // would break if there were more layer of prereq, and 
     // and the input changed wasnt default.
 
-    if (hadValue && prereqEntries['default'].includes(inputName)) {
+    // if (hadValue && prereqEntries['default'].includes(inputName)) {
+    //   this.setState({
+    //     activateInput: []
+    //   })
+    // }
+
+    if (prereqEntries['default'].includes(inputName)) {
       this.setState({
         activateInput: []
       })
@@ -393,7 +396,7 @@ export default class Cards extends React.Component {
                       name={key}
                       rowNo={index}
                       // value={row[key]}
-                      value={Object.keys(prereqEntries).includes(key) ?(this.getAssociatedId(key, row, 1)) : row[key]}
+                      value={Object.keys(prereqEntries).includes(key) ? this.getAssociatedId(key, row, 1) : row[key]}
                       foreignData={key.includes('_id') || key.includes('_list') ? 
                       {[`${getForeignName(key)}`]:this.props.foreignData[getForeignName(key)]} : null}
                       linkData={key.includes('_list') ? {[`${getForeignName(key, true)}`]:this.props.foreignData[getForeignName(key, true)]} : null}
@@ -406,6 +409,7 @@ export default class Cards extends React.Component {
                       isReading={true}
                       rowId={row['id']}
                       detectCheckPrereq={this.detectCheckPrereq}
+                      activateInput={this.state.activateInput}
                     />
                   </td> 
                 )}
