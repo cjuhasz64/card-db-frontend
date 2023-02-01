@@ -50,7 +50,7 @@ export default class Sets extends React.Component {
     })
   }
 
-  handleEditConfirm (value, rowIsEdited) {
+  handleEditConfirm (name, value, rowIsEdited) {
     this.state.updateData[Object.keys(columns)[this.state.editCounter]] = value;
     this.state.editCounter++;
   
