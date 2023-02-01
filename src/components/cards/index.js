@@ -192,54 +192,65 @@ export default class Cards extends React.Component {
     })
   }
 
-  handleEditConfirm (name, value, isEdited, linkData, linkDataIsEdited) {
+  rowIsValid (rowData, targetState, exceptionCols) {
 
-    if (columns.includes(name))
-    {
-      if (isEdited) {
-        this.state.rowIsEdited = true;
-      }
-      
-      if (linkDataIsEdited) {
-        this.state.multiIsChanged = true;
-      }
+    // make sure:
+    // - correct amount of entries
+    // - corrent col titles
+    // - compart with exceptionCols: e.g. features_list can be null, if it exists in exceptionCols, then its  valid
+
+    if (targetState.length != Object.keys(rowData).length) return false;
     
+    for (let i = 0; i <= rowData.length; i++) {
+      if (!targetState.includes(rowData[i])) return false;
+      if (rowData[i] === null && !exceptionCols.includes(rowData[i])) return false;
+    }
+    return true;
+  }
+
+
+  handleEditConfirm (colName, colValue, inputIsEdited, linkData) {
+    if (columns.includes(colName)) {
+
+      if (inputIsEdited) {
+        this.state.rowIsEdited = true;
+        if (linkData != null) this.state.multiIsChanged = true; 
+      }
+
       if (linkData) {
-        if (linkData.length > 1 && linkData.length < 20) {
-          this.state.updateData[columns[this.state.editCounter]] = null;
-          this.state.linkData[getForeignName(columns[this.state.editCounter])] = linkData
+        if (linkData.length > 1 && linkData.length < 20) {  
+          this.state.updateData[colName] = null;
+          this.state.linkData[getForeignName(colName)] = linkData
         } else {
-          this.state.updateData[columns[this.state.editCounter]] = value[0]['value'];
+          this.state.updateData[colName] = colValue[0]['value'];
         }
       } else {
-        
-          this.state.updateData[columns[this.state.editCounter]] = value;
-     
+        this.state.updateData[colName] = colValue;
       }
-      this.state.editCounter++;
-  
-      if (Object.keys(this.state.updateData).length === columns.length) {
-        if (this.state.rowIsEdited === true) {
+
+      if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.linkData))) {
+        if (this.state.rowIsEdited) {
           if (this.state.multiIsChanged) {
             if (Object.keys(this.state.linkData).length > 0) {
               this.props.handleUpdate(this.state.updateData, true, this.state.linkData, 'card')
             } else {
               this.props.handleUpdate(this.state.updateData, true)
             }
-            this.state.multiIsChanged = false;
           } else {
-            this.props.handleUpdate(this.state.updateData)
-          } 
-          this.state.rowIsEdited = false;
+            this.props.handleUpdate(this.state.updateData, false)
+          }
         }
-        
+        this.state.multiIsChanged = false;
+        this.state.rowIsEdited = false;
         this.state.updateData = {};
-        this.state.editCounter = 0;
         this.state.linkData = {};
-    
-      }
-    }
+      } 
 
+      if (Object.keys(this.state.linkData).length === columns.length) {
+        // need a way to handle if a row is invalid!!!
+      }
+      
+    }
     this.setState({
       actionActiveState: 'inactive',
       currentAction:'reading'

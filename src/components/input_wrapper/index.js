@@ -71,7 +71,7 @@ function InputWrapper(props) {
   }, []);
 
   useEffect(() => {
-    if (activateInput.length > 0) {    
+    if (activateInput && activateInput.length > 0) {    
       activateInput.forEach(e => {
         if (e.split(',')[0] === rowNo.toString() && e.split(',')[1] === name) {
           if (e.split(',')[2] === 'disable') {
@@ -95,22 +95,17 @@ function InputWrapper(props) {
       case 'updating':
         if (actionActiveState === 'confirm') {
           // confirm update
-          
           if (currentValue === '') {
             // should make the row invalid to edit, could be handled in cards index.js
-
             //handleActionCancel();
           } else {
-          
             setDefaultValue(currentValue);
-
             if (isMulti) {
-              handleEditConfirm(name, currentValue, isEdited, currentValue, linkDataIsEdited); // attributes can be improved
+              handleEditConfirm(name, currentValue, isEdited, currentValue); // attributes can be improved
             } else {
               handleEditConfirm(name, currentValue, isEdited);
             }
-          }
-          
+          }  
         } else if (actionActiveState === 'cancel') {
           // cancel update
           handleActionCancel();
@@ -158,10 +153,6 @@ function InputWrapper(props) {
         break;
       
     }
-
-
-
-
   }, [currentAction, actionActiveState]);
 
   useEffect(() => {
@@ -198,25 +189,13 @@ function InputWrapper(props) {
 
   }, [linkData, foreignData])
 
-
-
-
-
-
-
-
-
-
-
-  return (
-    
+  return (  
     <>
       {  
       !isCreating ? (
         isMulti ? (
           displayEdit ? ( 
             props.value ? (
-
               <Select
                 options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
                 onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}

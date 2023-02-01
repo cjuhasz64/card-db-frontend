@@ -121,11 +121,12 @@ export default class MasterPage extends React.Component {
   }
 
   async handleCreateLink (linkData, primaryLinkId, primaryLinkTable) {
+    console.log(linkData, primaryLinkId, primaryLinkTable)
     try {
       Object.keys(linkData).forEach(table => {
         var preparedData = {[`${primaryLinkTable}_id`]:`${primaryLinkId}`};
         linkData[table].forEach(element => {
-          preparedData[`${table}_id`] = element.value; 
+          preparedData[`${table}_id`] = element.value;
           this.handleCreate(preparedData, `${table}_link`)
         });  
       });
@@ -135,10 +136,8 @@ export default class MasterPage extends React.Component {
   }
 
   async handleUpdate(data, recreate, linkData, primaryTable) {
-
     var temp = {...data};
     temp['id'] = v4();
-
     if (recreate) {
       try {
         await fetchApi('delete', `/v1/${this.state.activePage}/${data['id']}`, data);
