@@ -54,10 +54,8 @@ export default class Cards extends React.Component {
     rowIsEdited: false,
     multiIsChanged: false,
     createIsValid: true,
-    editCounter: 0,
     currentAction: 'reading', // 'reading' 'updating' 'creating' 'deleting'
     actionActiveState: 'inactive', // 'cancel' 'confirm' 'inactive' 'fetching'
-    createCounter: 1,
     activateInput: []
   }
 
@@ -192,14 +190,14 @@ export default class Cards extends React.Component {
     })
   }
 
-  rowIsValid (rowData, targetState, exceptionCols) {
-
+  rowIsValid (rowData, targetState, exceptionCols, modifiedCount) {
+    console.log(modifiedCount)
     // make sure:
     // - correct amount of entries
     // - corrent col titles
     // - compart with exceptionCols: e.g. features_list can be null, if it exists in exceptionCols, then its  valid
-
-    if (targetState.length != Object.keys(rowData).length) return false;
+    console.log(targetState.length, Object.keys(rowData).length, rowData)
+    if (targetState.length != Object.keys(rowData).length + modifiedCount) return false;
     
     for (let i = 0; i <= rowData.length; i++) {
       if (!targetState.includes(rowData[i])) return false;
@@ -228,7 +226,7 @@ export default class Cards extends React.Component {
         this.state.updateData[colName] = colValue;
       }
 
-      if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.linkData))) {
+      if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.linkData), 0)) {
         if (this.state.rowIsEdited) {
           if (this.state.multiIsChanged) {
             if (Object.keys(this.state.linkData).length > 0) {
@@ -245,7 +243,6 @@ export default class Cards extends React.Component {
         this.state.updateData = {};
         this.state.linkData = {};
       } 
-
       if (Object.keys(this.state.linkData).length === columns.length) {
         // need a way to handle if a row is invalid!!!
       }
@@ -256,6 +253,55 @@ export default class Cards extends React.Component {
       currentAction:'reading'
     })
   }
+
+  async handleCreateConfirm(colName, colValue, createIsValid, linkData) {
+    if (columns.includes(colName))
+    {
+      if (!createIsValid) {
+        this.state.createIsValid = false;
+      } 
+
+      if (linkData) {
+        if (linkData.length > 1 && linkData.length < 20) {  
+          this.state.updateData[colName] = null;
+          this.state.linkData[getForeignName(colName)] = linkData
+        } else {
+          this.state.updateData[colName] = colValue[0]['value'];
+        }
+      } else {
+        this.state.updateData[colName] = colValue;
+      }
+
+      if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.linkData), 1)) {
+        console.log('%c Oh my heavens! ', 'background: #222; color: #bada55');
+        if (this.state.createIsValid) {
+            if (Object.keys(this.state.linkData).length > 0) {
+              const id = v4();
+              this.state.updateData['id'] = id;
+              await this.props.handleCreate(this.state.updateData)
+              this.props.handleCreateLink(this.state.linkData, id, 'card')
+            } else {
+              await this.props.handleCreate(this.state.updateData) 
+            }
+        }
+
+        this.setState({
+          updateData: {},
+          createIsValid: true
+        })
+      } 
+      
+
+
+
+
+    }
+    this.setState({
+      actionActiveState: 'inactive',
+      currentAction:'reading'
+    }) 
+  }
+
 
   detectEditCancel () {
     this.setState({
@@ -283,49 +329,6 @@ export default class Cards extends React.Component {
     })
   }
 
-  async handleCreateConfirm(name, value, createIsValid, linkData) {
-    if (columns.includes(name))
-    {
-      if (linkData) {
-        if (linkData.length > 1) {
-          this.state.updateData[columns[this.state.createCounter]] = null;
-          this.state.linkData[getForeignName(columns[this.state.createCounter])] = linkData
-        } else {
-          this.state.updateData[columns[this.state.createCounter]] = value[0]['value'];
-        }
-      } else {
-        this.state.updateData[columns[this.state.createCounter]] = value;
-      }
-
-      this.state.createCounter++;
-      if (!createIsValid) {
-        this.state.createIsValid = false;
-      } 
-
-      if (Object.keys(this.state.updateData).length === columns.length - 1) {
-        console.log(this.state.updateData)
-        if (this.state.createIsValid) { 
-          if (Object.keys(this.state.linkData) < 1) {
-            await this.props.handleCreate(this.state.updateData) 
-          } else {
-            const id = v4();
-            this.state.updateData['id'] = id;
-            await this.props.handleCreate(this.state.updateData)
-            this.props.handleCreateLink(this.state.linkData, id, 'card')
-          }
-        }
-        this.setState({
-          updateData: {},
-          createCounter: 1,
-          createIsValid: true
-        })
-      }
-    }
-    this.setState({
-      actionActiveState: 'inactive',
-      currentAction:'reading'
-    }) 
-  }
   renderTable() {
     if (this.props.data.length === 0) {
       return (

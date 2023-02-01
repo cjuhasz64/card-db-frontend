@@ -9,7 +9,6 @@ function InputWrapper(props) {
   const [currentValue, setCurrentValue] = useState(props.value);
   const [defaultValue, setDefaultValue] = useState(props.value);
   const [isEdited, setIsEdited] = useState(false);
-  const [linkDataIsEdited, setLinkDataIsEdited] = useState(false);
   const [foreignValue, setForeignValue] = useState('');
   const [linkDataList, setLinkDataList] = useState(null);
   const [selectDisabled, setSelectDisabled] = useState(true)
@@ -32,8 +31,7 @@ function InputWrapper(props) {
     detectCheckPrereq,
     activateInput,
     isDisabled,
-    defaultFilter,
-    value
+    defaultFilter
   } = props;
   
 
@@ -51,12 +49,12 @@ function InputWrapper(props) {
       if (selectFilter) {
         Object.keys(element).forEach(key => {
           if (element[key] === selectFilter) {
-            output.push({value:element['id'], label:`${element['name']}${(element['year'] ? element['year'] : '')}`}) 
+            output.push({value:element['id'], label:`${element['name']} ${(element['year'] ? element['year'] : '')}`}) 
           }
         })
     
       } else {
-        output.push({value:element['id'], label:`${element['name']}${(element['year'] ? element['year'] : '')}`}) 
+        output.push({value:element['id'], label:`${element['name']} ${(element['year'] ? element['year'] : '')}`}) 
       }
       
     });
@@ -113,7 +111,6 @@ function InputWrapper(props) {
 
         if (actionActiveState === 'confirm' || actionActiveState === 'cancel') {
           setIsEdited(false);
-          setLinkDataIsEdited(false);
           setDisplayEdit(false);
         }
         break;
@@ -198,7 +195,7 @@ function InputWrapper(props) {
             props.value ? (
               <Select
                 options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-                onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+                onChange={e => {setIsEdited(true); setCurrentValue(e)}}
                 isMulti
                 defaultValue={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
                   return option.value === currentValue;
@@ -208,7 +205,7 @@ function InputWrapper(props) {
             ) : (
               <Select
                 options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-                onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+                onChange={e => {setIsEdited(true); setCurrentValue(e);}}
                 defaultValue={prepareDataSelect(linkDataList).filter( (option) => {
                   return option.value;
                 })} 
@@ -235,7 +232,7 @@ function InputWrapper(props) {
               <span
                 onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
                   {/* dwadwad */}
-                  { foreignValue['name'] }
+                  { `${foreignValue['name']} ${foreignValue['year'] ? foreignValue['year'] : ''}`}
                   {/* { JSON.stringify(foreignData) } */}
                   {/* { JSON.stringify(foreignValue) } */}
                   {/* { JSON.stringify(props.value) } */}
@@ -278,7 +275,7 @@ function InputWrapper(props) {
           isMulti ? ( 
             <Select
               options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-              onChange={e => {setIsEdited(true); setCurrentValue(e); setLinkDataIsEdited(true)}}
+              onChange={e => {setIsEdited(true); setCurrentValue(e)}}
               isMulti
               isDisabled={selectDisabled}
             />
