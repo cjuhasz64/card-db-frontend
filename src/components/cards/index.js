@@ -101,25 +101,51 @@ export default class Cards extends React.Component {
   getAssociatedId (targetTable, currentRowData) {
     var currentCol, result, dataRow;
     if (currentRowData) {
+
       if (Object.keys(currentRowData).includes(targetTable)) {
+
         return currentRowData[targetTable]
       } else {
         for (let i = 0; i < Object.keys(currentRowData).length; i++) {
           currentCol = Object.keys(currentRowData)[i];
-
           if (currentCol.includes('_id')) {
+
             dataRow = this.findDataRow(currentRowData[currentCol], this.props.foreignData[getForeignName(currentCol)])
             result = this.getAssociatedId(targetTable, dataRow)
             if (result !== false) return result
+
           }
 
           if (currentCol.includes('_list')) {
 
-            // needs to handle if multiple featureds
+            // in _list option, if there happens to be multiple entries linked (mulitple features on card)
+            // the field will be null.
 
-            dataRow = this.findDataRow(currentRowData[currentCol], this.props.foreignData[getForeignName(currentCol)])
-            result = this.getAssociatedId(targetTable, dataRow)
-            if (result !== false) return result
+            // The soultion is to search the corresponding link table for the current id (card_id) and return the first
+            // linked id found (feature) since all features on a card are grouped to the same team, this solution works. 
+
+            if (currentRowData[currentCol] != null) {
+              dataRow = this.findDataRow(currentRowData[currentCol], this.props.foreignData[getForeignName(currentCol)])
+              result = this.getAssociatedId(targetTable, dataRow)
+              if (result !== false) return result
+            } else {
+              var rowId = currentRowData['id'] // card id
+              var linkedId; // will contain the first id linked with rowId
+              if (this.props.foreignData[getForeignName(currentCol, true)] != undefined) {
+
+                this.props.foreignData[getForeignName(currentCol, true)].forEach(row => {
+                  if (row['card_id'] === rowId) {
+
+                    if (!linkedId) linkedId = row[`${currentCol.split('_list')[0]}_id`] // features_list -> features_id
+
+                  }
+                });
+                dataRow = this.findDataRow(linkedId, this.props.foreignData[getForeignName(currentCol)])
+                result = this.getAssociatedId(targetTable, dataRow)
+                if (result !== false) return result
+
+              } 
+            }
           }
         }
         return false;
@@ -128,15 +154,6 @@ export default class Cards extends React.Component {
   }
 
   detectCheckPrereq (inputName, inputValue, rowNo, hadValue) {
-    // would break if there were more layer of prereq, and 
-    // and the input changed wasnt default.
-
-    // if (hadValue && prereqEntries['default'].includes(inputName)) {
-    //   this.setState({
-    //     activateInput: []
-    //   })
-    // }
-
     if (prereqEntries['default'].includes(inputName)) {
       this.setState({
         activateInput: []
@@ -162,8 +179,6 @@ export default class Cards extends React.Component {
       })) 
     });
   }
-
-
 
   handleDoubleClick () {
     this.setState({
