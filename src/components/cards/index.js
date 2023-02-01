@@ -193,7 +193,7 @@ export default class Cards extends React.Component {
   }
 
   handleEditConfirm (name, value, isEdited, linkData, linkDataIsEdited) {
-    
+
     if (columns.includes(name))
     {
       if (isEdited) {
@@ -212,7 +212,9 @@ export default class Cards extends React.Component {
           this.state.updateData[columns[this.state.editCounter]] = value[0]['value'];
         }
       } else {
-        this.state.updateData[columns[this.state.editCounter]] = value;
+        
+          this.state.updateData[columns[this.state.editCounter]] = value;
+     
       }
       this.state.editCounter++;
   

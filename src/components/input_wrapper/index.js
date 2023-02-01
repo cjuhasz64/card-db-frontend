@@ -32,8 +32,10 @@ function InputWrapper(props) {
     detectCheckPrereq,
     activateInput,
     isDisabled,
-    defaultFilter
+    defaultFilter,
+    value
   } = props;
+  
 
   function prepareDataView (data) {
     let output = [];
@@ -42,6 +44,7 @@ function InputWrapper(props) {
     })
     return output;
   }
+
   function prepareDataSelect (data) {
     let output = [];
     data.forEach(element => {
@@ -53,7 +56,7 @@ function InputWrapper(props) {
         })
     
       } else {
-        output.push({value:element['id'], label:element['name']}) 
+        output.push({value:element['id'], label:`${element['name']}${(element['year'] ? element['year'] : '')}`}) 
       }
       
     });
@@ -61,75 +64,87 @@ function InputWrapper(props) {
   }
 
   useEffect(() => {
-    
-    setSelectFilter(defaultFilter)
-  
-    if (activateInput && activateInput.length > 0) {   
-      //console.log(activateInput)  
+    //if (defaultFilter) setSelectFilter(defaultFilter)
+    //console.log(defaultFilter)
+    // setCurrentValue(value)
+    // setDefaultValue(value)
+  }, []);
+
+  useEffect(() => {
+    if (activateInput.length > 0) {    
       activateInput.forEach(e => {
         if (e.split(',')[0] === rowNo.toString() && e.split(',')[1] === name) {
           if (e.split(',')[2] === 'disable') {
-            console.log(e + "   DISABLE")
-            // TODO::::   clear input value
             setSelectDisabled(true)
             setSelectFilter(e.split(',')[2])
           } else {
             setSelectDisabled(false)
             setSelectFilter(e.split(',')[2])
             setDisplayEdit(true)
-
           }
         }  
       });
     }
+  }, [activateInput]);
+
+  useEffect(() => {
+
+    if (defaultFilter) setSelectFilter(defaultFilter) // would prefer this in the first useEffect
     
     switch (currentAction) {
       case 'updating':
-        if (actionActiveState === 'cancel') {
-          setDisplayEdit(false);
-          handleActionCancel();
-        } else if (actionActiveState === 'confirm') {
-          setDisplayEdit(false);
+        if (actionActiveState === 'confirm') {
+          // confirm update
+          
           if (currentValue === '') {
-            handleActionCancel();
+            // should make the row invalid to edit, could be handled in cards index.js
+
+            //handleActionCancel();
           } else {
+          
             setDefaultValue(currentValue);
+
             if (isMulti) {
-              handleEditConfirm(name, currentValue, isEdited, currentValue, linkDataIsEdited);
+              handleEditConfirm(name, currentValue, isEdited, currentValue, linkDataIsEdited); // attributes can be improved
             } else {
               handleEditConfirm(name, currentValue, isEdited);
             }
-            setIsEdited(false);
-            setLinkDataIsEdited(false)
           }
+          
+        } else if (actionActiveState === 'cancel') {
+          // cancel update
+          handleActionCancel();
+        } 
+
+        if (actionActiveState === 'confirm' || actionActiveState === 'cancel') {
+          setIsEdited(false);
+          setLinkDataIsEdited(false);
+          setDisplayEdit(false);
         }
         break;
+
       case 'creating':
 
         if (!isDisabled) {
           setSelectDisabled(false)
         }
 
-        if (actionActiveState === 'confirm') {
-          if (isCreating) {
-            if (isMulti) {
-              handleCreateConfirm(name, currentValue, true, currentValue);
+        if (actionActiveState === 'confirm' && isCreating) {
+          if (isMulti) {
+            handleCreateConfirm(name, currentValue, true, currentValue);
+          } else {
+            if (typeof currentValue === 'undefined') {
+              handleCreateConfirm(name, currentValue, false);
             } else {
-              if (typeof currentValue === 'undefined') {
-                handleCreateConfirm(name, currentValue, false);
-              } else {
-                handleCreateConfirm(name, currentValue, true);
-              }
+              handleCreateConfirm(name, currentValue, true);
             }
           }
         } else if (actionActiveState === 'cancel') {
           handleActionCancel();
-          
         }
         break;
-      case 'reading':  
+      case 'reading':
         if (actionActiveState === 'inactive') {
-          
           setDisplayEdit(false);
           setCurrentValue(defaultValue);
 
@@ -137,40 +152,61 @@ function InputWrapper(props) {
           setSelectDisabled(false)
         }
 
-        if (foreignData) {
-          if (typeof foreignData[Object.keys(foreignData)[0]] != 'undefined') { 
-            foreignData[Object.keys(foreignData)[0]].forEach( element => {
-              //console.log(currentValue)
-              if (element['id'] === props.value) {
-                if (!foreignValue && props.value) { 
-                  setForeignValue(element);
-                }
+        break;
+      case 'deleting':
+        //nothing rn
+        break;
+      
+    }
+
+
+
+
+  }, [currentAction, actionActiveState]);
+
+  useEffect(() => {
+
+    if (foreignData) {
+      if (typeof foreignData[Object.keys(foreignData)[0]] != 'undefined') { 
+        foreignData[Object.keys(foreignData)[0]].forEach( element => {
+          //console.log(currentValue)
+          if (element['id'] === props.value) {
+            if (!foreignValue && props.value) { 
+              setForeignValue(element);
+            }
+          }
+        })
+      }
+    }
+
+
+    if (linkData) { 
+      if (typeof linkData[Object.keys(linkData)[0]] != 'undefined') {
+        var temp = [];
+        linkData[Object.keys(linkData)[0]].forEach( linkElement => {
+          if (linkElement['card_id'] === rowId) {
+            foreignData[Object.keys(foreignData)[0]].forEach( foreignElement => {
+              if (foreignElement['id'] === linkElement['features_id']) {
+                temp.push(foreignElement)
               }
             })
           }
-        }
-        
-
-        // not scalable
-        if (linkData) { 
-          if (typeof linkData[Object.keys(linkData)[0]] != 'undefined') {
-            var temp = [];
-            linkData[Object.keys(linkData)[0]].forEach( linkElement => {
-              if (linkElement['card_id'] === rowId) {
-                foreignData[Object.keys(foreignData)[0]].forEach( foreignElement => {
-                  if (foreignElement['id'] === linkElement['features_id']) {
-                    temp.push(foreignElement)
-                  }
-                })
-              }
-            }) 
-            setLinkDataList(temp)     
-          }
-        }
-
-        break;
+        }) 
+        setLinkDataList(temp)     
+      }
     }
-  }, [currentAction, actionActiveState, linkData, foreignData, activateInput]);
+
+  }, [linkData, foreignData])
+
+
+
+
+
+
+
+
+
+
 
   return (
     
