@@ -159,9 +159,18 @@ export default class Cards extends React.Component {
     })
   }
 
-  handleEditConfirm (value, isEdited, linkData, linkDataIsEdited) {
-    if (isEdited) {
-      this.state.rowIsEdited = true;
+  rowIsValid (rowData, targetState, exceptionCols, modifiedCount = 0) {
+    console.log(modifiedCount)
+    // make sure:
+    // - correct amount of entries
+    // - corrent col titles
+    // - compart with exceptionCols: e.g. features_list can be null, if it exists in exceptionCols, then its  valid
+    console.log(targetState.length, Object.keys(rowData).length, rowData)
+    if (targetState.length != Object.keys(rowData).length + modifiedCount) return false;
+    
+    for (let i = 0; i <= rowData.length; i++) {
+      if (!targetState.includes(rowData[i])) return false;
+      if (rowData[i] === null && !exceptionCols.includes(rowData[i])) return false;
     }
     
     if (linkDataIsEdited) {
@@ -180,11 +189,14 @@ export default class Cards extends React.Component {
     }
     this.state.editCounter++;
 
-    if (Object.keys(this.state.updateData).length === columns.length) {
-      if (this.state.rowIsEdited === true) {
-        if (this.state.multiIsChanged) {
-          if (Object.keys(this.state.linkData).length > 0) {
-            this.props.handleUpdate(this.state.updateData, true, this.state.linkData, 'card')
+      if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.linkData))) {
+        if (this.state.rowIsEdited) {
+          if (this.state.multiIsChanged) {
+            if (Object.keys(this.state.linkData).length > 0) {
+              this.props.handleUpdate(this.state.updateData, true, this.state.linkData, 'card')
+            } else {
+              this.props.handleUpdate(this.state.updateData, true)
+            }
           } else {
             this.props.handleUpdate(this.state.updateData, true)
           }
