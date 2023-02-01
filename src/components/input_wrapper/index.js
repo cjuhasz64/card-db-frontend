@@ -61,10 +61,9 @@ function InputWrapper(props) {
   }
 
   useEffect(() => {
-    if (defaultFilter && selectFilter === null) {
-      setSelectFilter(defaultFilter)
-    }
     
+    setSelectFilter(defaultFilter)
+  
     if (activateInput && activateInput.length > 0) {   
       //console.log(activateInput)  
       activateInput.forEach(e => {
@@ -75,7 +74,6 @@ function InputWrapper(props) {
             setSelectDisabled(true)
             setSelectFilter(e.split(',')[2])
           } else {
-            console.log(name + rowNo)
             setSelectDisabled(false)
             setSelectFilter(e.split(',')[2])
             setDisplayEdit(true)
