@@ -5,9 +5,6 @@ Double click a cell to edit it.
 
 ================================================
 TODO:
-  - Refractor input_wrapper. Orginise useEffect
-  - Implement update for foreign values
-    + Need to consider prereq entries (option to be changed dynamically filtered on update)
   - Filters for read
   - Sorting for read
   - Overall code cleanup and improve naming conventions
