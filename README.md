@@ -5,6 +5,7 @@ Double click a cell to edit it.
 
 ================================================
 TODO:
+  - Refactor all pages based on new conventions on card page
   - Filters for read
   - Sorting for read
   - Overall code cleanup and improve naming conventions
