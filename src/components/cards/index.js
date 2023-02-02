@@ -4,6 +4,7 @@ import InputWrapper from '../input_wrapper/index.js';
 import HeaderOptions from '../header_options/index.js';
 import fetchApi from '../../util/fetchApi';
 import getForeignName from '../../util/getForeignName';
+import logger from '../../util/logger';
 import { v4 } from 'uuid';
 
 const pluralize = require('pluralize')
@@ -34,7 +35,7 @@ const displayedColumns = {
   'rookie':'R',
   'patch':'P',
   'autograph':'A',
-  'quantity':'Quantity'
+  'quantity':'Quantity' 
 }
 
 // ie. to access features_list col, game_id must be entered
@@ -55,7 +56,7 @@ export default class Cards extends React.Component {
     multiIsChanged: false,
     createIsValid: true,
     currentAction: 'reading', // 'reading' 'updating' 'creating' 'deleting'
-    actionActiveState: 'inactive', // 'cancel' 'confirm' 'inactive' 'fetching'
+    actionActiveState: 'inactive', // 'cancel' 'confirm' 'inactive' 'fetching' 'failure'
     activateInput: []
   }
 
@@ -72,6 +73,7 @@ export default class Cards extends React.Component {
     this.detectCheckPrereq = this.detectCheckPrereq.bind(this);
   }
 
+  // for key:value(array) array e.g. prereqEntries
   getKeyByValue(array, value) {
     var result = null;
     if (array) {
@@ -99,19 +101,15 @@ export default class Cards extends React.Component {
   getAssociatedId (targetTable, currentRowData) {
     var currentCol, result, dataRow;
     if (currentRowData) {
-
       if (Object.keys(currentRowData).includes(targetTable)) {
-
         return currentRowData[targetTable]
       } else {
         for (let i = 0; i < Object.keys(currentRowData).length; i++) {
           currentCol = Object.keys(currentRowData)[i];
           if (currentCol.includes('_id')) {
-
             dataRow = this.findDataRow(currentRowData[currentCol], this.props.foreignData[getForeignName(currentCol)])
             result = this.getAssociatedId(targetTable, dataRow)
             if (result !== false) return result
-
           }
 
           if (currentCol.includes('_list')) {
@@ -130,18 +128,14 @@ export default class Cards extends React.Component {
               var rowId = currentRowData['id'] // card id
               var linkedId; // will contain the first id linked with rowId
               if (this.props.foreignData[getForeignName(currentCol, true)] != undefined) {
-
                 this.props.foreignData[getForeignName(currentCol, true)].forEach(row => {
                   if (row['card_id'] === rowId) {
-
                     if (!linkedId) linkedId = row[`${currentCol.split('_list')[0]}_id`] // features_list -> features_id
-
                   }
                 });
                 dataRow = this.findDataRow(linkedId, this.props.foreignData[getForeignName(currentCol)])
                 result = this.getAssociatedId(targetTable, dataRow)
                 if (result !== false) return result
-
               } 
             }
           }
@@ -178,36 +172,25 @@ export default class Cards extends React.Component {
     });
   }
 
-  handleDoubleClick () {
-    this.setState({
-      currentAction: 'updating'
-    })
-  }
-
-  detectEditConfirm () {
-    this.setState({
-      actionActiveState: 'confirm',
-    })
-  }
-
-  rowIsValid (rowData, targetState, exceptionCols, modifiedCount) {
-    console.log(modifiedCount)
+  rowIsValid (rowData, targetState, exceptionCols) {
+    //logger('d', exceptionCols)
     // make sure:
     // - correct amount of entries
     // - corrent col titles
     // - compart with exceptionCols: e.g. features_list can be null, if it exists in exceptionCols, then its  valid
-    console.log(targetState.length, Object.keys(rowData).length, rowData)
-    if (targetState.length != Object.keys(rowData).length + modifiedCount) return false;
-    
-    for (let i = 0; i <= rowData.length; i++) {
-      if (!targetState.includes(rowData[i])) return false;
-      if (rowData[i] === null && !exceptionCols.includes(rowData[i])) return false;
+
+    var currentKeys = Object.keys(rowData);
+    for (let i = 0; i < currentKeys.length; i++) {
+      if (!targetState.includes(currentKeys[i])) return false;
+      if (rowData[currentKeys[i]] === null && !exceptionCols.includes(currentKeys[i])) return false;
+      if (rowData[currentKeys[i]] === '' || rowData[currentKeys[i]] === -1) return false;
     }
     return true;
   }
 
 
   handleEditConfirm (colName, colValue, inputIsEdited, linkData) {
+    
     if (columns.includes(colName)) {
 
       if (inputIsEdited) {
@@ -219,6 +202,8 @@ export default class Cards extends React.Component {
         if (linkData.length > 1 && linkData.length < 20) {  
           this.state.updateData[colName] = null;
           this.state.linkData[getForeignName(colName)] = linkData
+        } else if (linkData.length < 1) {
+          this.state.updateData[colName] = -1;
         } else {
           this.state.updateData[colName] = colValue[0]['value'];
         }
@@ -226,27 +211,29 @@ export default class Cards extends React.Component {
         this.state.updateData[colName] = colValue;
       }
 
-      if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.linkData))) {
-        if (this.state.rowIsEdited) {
-          if (this.state.multiIsChanged) {
-            if (Object.keys(this.state.linkData).length > 0) {
-              this.props.handleUpdate(this.state.updateData, true, this.state.linkData, 'card')
+      if (columns.length === Object.keys(this.state.updateData).length) {
+        if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.updateData).filter((key) => { return key.includes('_list') }))) {
+
+          if (this.state.rowIsEdited) {
+            logger('success', 'Card Edit')
+            if (this.state.multiIsChanged) {
+              if (Object.keys(this.state.linkData).length > 0) {
+                this.props.handleUpdate(this.state.updateData, true, this.state.linkData, 'card')
+              } else {
+                this.props.handleUpdate(this.state.updateData, true)
+              }
             } else {
-              this.props.handleUpdate(this.state.updateData, true)
+              this.props.handleUpdate(this.state.updateData, false)
             }
-          } else {
-            this.props.handleUpdate(this.state.updateData, false)
           }
+        } else {
+          logger('error', `Card Edit \n${JSON.stringify(this.state.updateData)}`)
         }
         this.state.multiIsChanged = false;
         this.state.rowIsEdited = false;
         this.state.updateData = {};
         this.state.linkData = {};
-      } 
-      if (Object.keys(this.state.linkData).length === columns.length) {
-        // need a way to handle if a row is invalid!!!
       }
-      
     }
     this.setState({
       actionActiveState: 'inactive',
@@ -254,17 +241,20 @@ export default class Cards extends React.Component {
     })
   }
 
-  async handleCreateConfirm(colName, colValue, createIsValid, linkData) {
+  // linkData defaults to [] if is _list. To be consistent with updateConfirm. 
+  async handleCreateConfirm(colName, colValue, createIsValid, linkData = colName.includes('_list') ? [] : undefined) {
     if (columns.includes(colName))
     {
       if (!createIsValid) {
         this.state.createIsValid = false;
       } 
-
+     
       if (linkData) {
         if (linkData.length > 1 && linkData.length < 20) {  
           this.state.updateData[colName] = null;
           this.state.linkData[getForeignName(colName)] = linkData
+        } else if (linkData.length < 1) {
+          this.state.updateData[colName] = -1;
         } else {
           this.state.updateData[colName] = colValue[0]['value'];
         }
@@ -272,9 +262,10 @@ export default class Cards extends React.Component {
         this.state.updateData[colName] = colValue;
       }
 
-      if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.linkData)), 1) {
-        console.log('%c Oh my heavens! ', 'background: #222; color: #bada55');
-        if (this.state.createIsValid) {
+      if (columns.length === Object.keys(this.state.updateData).length + 1) {
+        if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.updateData).filter(key => { return key.includes('_list') }))) {
+          if (this.state.createIsValid) {
+            logger('success', 'Card Created')
             if (Object.keys(this.state.linkData).length > 0) {
               const id = v4();
               this.state.updateData['id'] = id;
@@ -283,6 +274,9 @@ export default class Cards extends React.Component {
             } else {
               await this.props.handleCreate(this.state.updateData) 
             }
+          } 
+        } else {
+          logger('error', `Card Create \n${JSON.stringify(this.state.updateData)}`)
         }
 
         this.setState({
@@ -290,11 +284,7 @@ export default class Cards extends React.Component {
           createIsValid: true
         })
       } 
-      
-
-
-
-
+  
     }
     this.setState({
       actionActiveState: 'inactive',
@@ -303,9 +293,9 @@ export default class Cards extends React.Component {
   }
 
 
-  detectEditCancel () {
+  handleDoubleClick () {
     this.setState({
-      actionActiveState: 'cancel',
+      currentAction: 'updating'
     })
   }
 
@@ -316,6 +306,20 @@ export default class Cards extends React.Component {
       activateInput: []
     })
   }
+  
+  detectEditConfirm () {
+    logger('INFO', 'Card Edit Confirmed')
+    this.setState({
+      actionActiveState: 'confirm',
+    })
+  }
+
+  detectEditCancel () {
+    logger('INFO', 'Card Action Cancelled')
+    this.setState({
+      actionActiveState: 'cancel',
+    })
+  } 
 
   detectCreate() {
     this.setState({
@@ -324,6 +328,7 @@ export default class Cards extends React.Component {
   }
   
   detectCreateConfirm () {
+    logger('INFO', 'Card Create Confirmed')
     this.setState({
       actionActiveState: 'confirm'
     })
@@ -337,7 +342,6 @@ export default class Cards extends React.Component {
             <thead>
               <tr>
                 {Object.keys(displayedColumns).map((key) => <th key={key}>{displayedColumns[key]}</th>)}
-                
               </tr>
             </thead>
             <tbody>
@@ -391,7 +395,6 @@ export default class Cards extends React.Component {
           <thead>
             <tr>
               {Object.keys(displayedColumns).map((key) => <th key={key}>{displayedColumns[key]}</th>)}
-             
             </tr>
           </thead>
           <tbody>

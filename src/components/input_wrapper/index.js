@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import fetchApi from '../../util/fetchApi';
 import Select from 'react-select';
 import { json } from 'react-router-dom';
+import logger from '../../util/logger';
 
 function InputWrapper(props) {
 
@@ -37,10 +38,8 @@ function InputWrapper(props) {
 
   function prepareDataView (data) {
     let output = [];
-    data.forEach(element => {
-      output.push(`${element['name']}`) 
-    })
-    return output;
+    for (let i = 0; i < data.length; i++ ) output.push(`${data[i]['name']}`) 
+    return output.join('/')
   }
 
   function prepareDataSelect (data) {
@@ -92,18 +91,13 @@ function InputWrapper(props) {
     switch (currentAction) {
       case 'updating':
         if (actionActiveState === 'confirm') {
-          // confirm update
-          if (currentValue === '') {
-            // should make the row invalid to edit, could be handled in cards index.js
-            //handleActionCancel();
+          // setDefaultValue(currentValue);
+          if (isMulti) {
+            handleEditConfirm(name, currentValue, isEdited, currentValue); 
           } else {
-            setDefaultValue(currentValue);
-            if (isMulti) {
-              handleEditConfirm(name, currentValue, isEdited, currentValue); // attributes can be improved
-            } else {
-              handleEditConfirm(name, currentValue, isEdited);
-            }
-          }  
+            handleEditConfirm(name, currentValue, isEdited);
+          }
+           
         } else if (actionActiveState === 'cancel') {
           // cancel update
           handleActionCancel();
@@ -116,8 +110,7 @@ function InputWrapper(props) {
         break;
 
       case 'creating':
-
-        if (!isDisabled) {
+        if (!isDisabled) {    
           setSelectDisabled(false)
         }
 
@@ -143,12 +136,10 @@ function InputWrapper(props) {
           // POSSIBLE SOURCE OF BUG
           setSelectDisabled(false)
         }
-
         break;
       case 'deleting':
         //nothing rn
-        break;
-      
+        break; 
     }
   }, [currentAction, actionActiveState]);
 
@@ -157,7 +148,6 @@ function InputWrapper(props) {
     if (foreignData) {
       if (typeof foreignData[Object.keys(foreignData)[0]] != 'undefined') { 
         foreignData[Object.keys(foreignData)[0]].forEach( element => {
-          //console.log(currentValue)
           if (element['id'] === props.value) {
             if (!foreignValue && props.value) { 
               setForeignValue(element);

@@ -8,6 +8,7 @@ import Sets from "../../components/sets";
 import Varieties from "../../components/varieties";
 import "./style.css"
 import { v4 } from 'uuid';
+import logger from '../../util/logger';
 
 const foreignKeys = {
   'teams':['games'],
@@ -61,7 +62,6 @@ export default class MasterPage extends React.Component {
       this.setState({
         resultData: await fetchApi('get', `/v1/${this.state.activePage}`),
       })
-      console.log(this.activePage)
       if (Object.keys(foreignKeys).includes(this.state.activePage))
       {
         foreignKeys[this.state.activePage].forEach( async element => {
@@ -82,8 +82,10 @@ export default class MasterPage extends React.Component {
       this.setState({
         inFlight: 'done'
       })
+      logger('success', 'Fetch Resources')
 
     } catch (error) {
+      logger('error', 'Fetch Resources')
       this.setState({
         inFlight: 'error'
       })
@@ -93,35 +95,35 @@ export default class MasterPage extends React.Component {
   async handleDelete(id) {
     try {
       await fetchApi('delete', `/v1/${this.state.activePage}/${id}`);
+      logger('success', 'Delete')
       await this.fetchResources();
     } catch (error) {
-      console.log(error)
+      logger('error', `Delete ${error}`)
     }
   }
 
   async handleCreate(data, endpoint) {
-    console.log(data)
     if (endpoint) {
-      console.log(JSON.stringify(data) + "      " + endpoint)
       try {
         await fetchApi('post', `/v1/${endpoint}`, data);
+        logger('success', 'Create')
         await this.fetchResources();
       } catch (error) {
-        console.log(error)
+        logger('error', `Create ${error}`)
       }
     } else {
       try {
         await fetchApi('post', `/v1/${this.state.activePage}`, data);
+        logger('success', 'Create')
         await this.fetchResources();
       } catch (error) {
-        console.log(error)
+        logger('error', `Create ${error}`)
       }
     }
     
   }
 
   async handleCreateLink (linkData, primaryLinkId, primaryLinkTable) {
-    console.log(linkData, primaryLinkId, primaryLinkTable)
     try {
       Object.keys(linkData).forEach(table => {
         var preparedData = {[`${primaryLinkTable}_id`]:`${primaryLinkId}`};
@@ -130,8 +132,9 @@ export default class MasterPage extends React.Component {
           this.handleCreate(preparedData, `${table}_link`)
         });  
       });
+      logger('success', 'Link')
     } catch (error) {
-      console.log(error)
+      logger('error', `Link - ${error}`)
     }
   }
 
@@ -142,17 +145,17 @@ export default class MasterPage extends React.Component {
       try {
         await fetchApi('delete', `/v1/${this.state.activePage}/${data['id']}`, data);
         await fetchApi('post', `/v1/${this.state.activePage}`, temp);
-        await this.handleCreateLink(linkData, temp['id'], primaryTable)
+        if (linkData) await this.handleCreateLink(linkData, temp['id'], primaryTable)
         await this.fetchResources();
       } catch (error) {
-        console.log(error)
+        logger('error', `Update ${error}`)
       }
     } else {
       try {
         await fetchApi('put', `/v1/${this.state.activePage}/${data['id']}`, data);
         await this.fetchResources();
       } catch (error) {
-        console.log(error)
+        logger('error', `Update ${error}`)
       }
     }
   }
