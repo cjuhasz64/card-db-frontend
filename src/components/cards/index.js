@@ -2,6 +2,7 @@ import React from 'react';
 import './style.scss'
 import InputWrapper from '../input_wrapper/index.js';
 import HeaderOptions from '../header_options/index.js';
+import CheckBox from '../checkbox';
 import fetchApi from '../../util/fetchApi';
 import getForeignName from '../../util/getForeignName';
 import logger from '../../util/logger';
@@ -22,6 +23,12 @@ const columns = [
   'quantity',
 ];
 
+const checklist = [
+  'rookie',
+  'patch',
+  'autograph'
+]
+
 const displayedColumns = {
   'id':'x',
   'code':'Code',
@@ -32,10 +39,10 @@ const displayedColumns = {
   'features_list':'Feature',
   'grade':'Grade',
   'numberedTo':'Numbered',
-  'rookie':'R',
-  'patch':'P',
-  'autograph':'A',
-  'quantity':'Quantity' 
+  'rookie':'',
+  'patch':'',
+  'autograph':'',
+  'quantity':'Quantity'
 }
 
 // ie. to access features_list col, game_id must be entered
@@ -145,8 +152,10 @@ export default class Cards extends React.Component {
     }
   }
 
-  detectCheckPrereq (inputName, inputValue, rowNo, hadValue) {
-    if (prereqEntries['default'].includes(inputName)) {
+  detectCheckPrereq (inputName, inputValue, rowNo, hadValue, notFirstChain) {
+    // PROBLEM PASSING IN PARAMETER FROM INPUT_WRAPPER
+    
+    if (!notFirstChain) {
       this.setState({
         activateInput: []
       })
@@ -159,7 +168,7 @@ export default class Cards extends React.Component {
         prereqEntries[key].forEach(e => {
           output.push(`${rowNo},${e},${inputValue}`)
           if (hadValue) {
-            this.detectCheckPrereq(e,'disable',rowNo,false)
+            this.detectCheckPrereq(e,'disable',rowNo,false,true)
           }
         });
       } 
@@ -173,7 +182,7 @@ export default class Cards extends React.Component {
   }
 
   rowIsValid (rowData, targetState, exceptionCols) {
-    //logger('d', exceptionCols)
+    //logger('d', JSON.stringify(rowData))
     // make sure:
     // - correct amount of entries
     // - corrent col titles
@@ -182,7 +191,7 @@ export default class Cards extends React.Component {
     var currentKeys = Object.keys(rowData);
     for (let i = 0; i < currentKeys.length; i++) {
       if (!targetState.includes(currentKeys[i])) return false;
-      if (rowData[currentKeys[i]] === null && !exceptionCols.includes(currentKeys[i])) return false;
+      //if (rowData[currentKeys[i]] === null && !exceptionCols.includes(currentKeys[i])) return false;
       if (rowData[currentKeys[i]] === '' || rowData[currentKeys[i]] === -1) return false;
     }
     return true;
@@ -190,7 +199,6 @@ export default class Cards extends React.Component {
 
 
   handleEditConfirm (colName, colValue, inputIsEdited, linkData) {
-    
     if (columns.includes(colName)) {
 
       if (inputIsEdited) {
@@ -213,7 +221,6 @@ export default class Cards extends React.Component {
 
       if (columns.length === Object.keys(this.state.updateData).length) {
         if (this.rowIsValid(this.state.updateData, columns, Object.keys(this.state.updateData).filter((key) => { return key.includes('_list') }))) {
-
           if (this.state.rowIsEdited) {
             logger('success', 'Card Edit')
             if (this.state.multiIsChanged) {
@@ -335,66 +342,18 @@ export default class Cards extends React.Component {
   }
 
   renderTable() {
-    if (this.props.data.length === 0) {
-      return (
-        this.state.currentAction === 'creating' ? ( 
-          <table>
-            <thead>
-              <tr>
-                {Object.keys(displayedColumns).map((key) => <th key={key}>{displayedColumns[key]}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-              {
-                this.state.currentAction === 'creating' ? (
-                  <>
-                    <td/>
-                    { 
-                      Object.keys(displayedColumns).map ((key) => 
-                        (key != 'id') ? (
-                          <td>
-                            <InputWrapper 
-                              foreignData={key.includes('_id') || key.includes('_list')? 
-                              {[`${pluralize(getForeignName(key))}`]:this.props.foreignData[pluralize(getForeignName(key))]} : null}
-                              currentAction={this.state.currentAction}
-                              actionActiveState={this.state.actionActiveState}
-                              handleCreateConfirm={this.handleCreateConfirm}
-                              handleActionCancel={this.handleActionCancel}
-                              isMulti={key.includes('_list')}
-                              isCreating={true}
-                              name={key}
-                              rowNo={-1}
-                              detectCheckPrereq={this.detectCheckPrereq}
-                              activateInput={this.state.activateInput}
-                              isDisabled={prereqEntries['default'].includes(key) ? false : true}
-                            />
-                          </td>
-                          
-                        ) : (
-                          null
-                        )
-                      )
-                    } 
-                  </>
-                ) : (
-                  <></>
-                )
-              }
-              </tr>
-            </tbody>
-          </table>
-        ) : (
-          <span>No data to be displayed</span>
-        )
-      ) 
-    }
     return (
       <>
+        {/* <img src={letterR} alt="Kiwi standing on oval"></img>
+        <img src={letterP} alt="Kiwi standing on oval"></img>
+        <img src={letterA} alt="Kiwi standing on oval"></img> */}
         <table>
           <thead>
             <tr>
-              {Object.keys(displayedColumns).map((key) => <th key={key}>{displayedColumns[key]}</th>)}
+              {
+                (this.props.data.length === 0 && this.state.currentAction != 'creating') ? 'NOTHING HERE PAL' :
+                Object.keys(displayedColumns).map((key) => <th key={key}>{displayedColumns[key]}</th>)
+              }
             </tr>
           </thead>
           <tbody>
@@ -415,13 +374,14 @@ export default class Cards extends React.Component {
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
-                              isMulti={key.includes('_list')}
+                              //isMulti={key.includes('_list')}
                               isCreating={true}
                               name={key}
                               rowNo={-1}
                               detectCheckPrereq={this.detectCheckPrereq}
                               activateInput={this.state.activateInput}
                               isDisabled={prereqEntries['default'].includes(key) ? false : true}
+                              inputType={key.includes('_list') ? 'multi' : checklist.includes(key) ? 'checklist' : null}
                             />
                           </td>
                           
@@ -444,7 +404,6 @@ export default class Cards extends React.Component {
                     <InputWrapper 
                       name={key}
                       rowNo={index}
-                      // value={row[key]}
                       value={Object.keys(prereqEntries).includes(key) ? this.getAssociatedId(key, row) : row[key]}
                       foreignData={key.includes('_id') || key.includes('_list') ? 
                       {[`${getForeignName(key)}`]:this.props.foreignData[getForeignName(key)]} : null}
@@ -454,13 +413,11 @@ export default class Cards extends React.Component {
                       handleEditConfirm={this.handleEditConfirm}
                       currentAction={this.state.currentAction}
                       actionActiveState={this.state.actionActiveState}
-                      isMulti={key.includes('_list')}
-                      isReading={true}
+                      inputType={key.includes('_list') ? 'multi' : checklist.includes(key) ? 'checklist' : null}
                       rowId={row['id']}
                       detectCheckPrereq={this.detectCheckPrereq}
                       activateInput={this.state.activateInput}
                       defaultFilter={this.getAssociatedId(this.getKeyByValue(prereqEntries, key), row)}
-                      
                     />
                   </td> 
                 )}

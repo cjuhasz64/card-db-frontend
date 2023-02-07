@@ -14,7 +14,7 @@ const foreignKeys = {
   'teams':['games'],
   'sets':['games'],
   'varieties':['sets'],
-  'features':['teams'],
+  'features':['teams', 'games'],
   'cards':['features','varieties', 'features_link', 'games', 'sets', 'teams']
 }
 

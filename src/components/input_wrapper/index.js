@@ -3,6 +3,8 @@ import fetchApi from '../../util/fetchApi';
 import Select from 'react-select';
 import { json } from 'react-router-dom';
 import logger from '../../util/logger';
+import CheckBox from '../checkbox';
+import './style.scss'
 
 function InputWrapper(props) {
 
@@ -15,15 +17,14 @@ function InputWrapper(props) {
   const [selectDisabled, setSelectDisabled] = useState(true)
   const [selectFilter, setSelectFilter] = useState(null)
 
-  const { 
-    handleDoubleClick, 
-    handleActionCancel, 
-    handleEditConfirm, 
-    currentAction, 
-    actionActiveState, 
+  const {
+    handleDoubleClick,
+    handleActionCancel,
+    handleEditConfirm,
+    currentAction,
+    actionActiveState,
     handleCreateConfirm,
     foreignData,
-    isMulti,
     isCreating,
     rowId,
     linkData,
@@ -32,30 +33,37 @@ function InputWrapper(props) {
     detectCheckPrereq,
     activateInput,
     isDisabled,
-    defaultFilter
+    defaultFilter,
+    inputType
   } = props;
-  
 
-  function prepareDataView (data) {
+  function exists(arr, target) {
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i]['value'] === target) return true
+    }
+    return false
+  }
+
+  function prepareDataView(data) {
     let output = [];
-    for (let i = 0; i < data.length; i++ ) output.push(`${data[i]['name']}`) 
+    for (let i = 0; i < data.length; i++) output.push(`${data[i]['name']}`)
     return output.join('/')
   }
 
-  function prepareDataSelect (data) {
+  function prepareDataSelect(data) {
     let output = [];
     data.forEach(element => {
       if (selectFilter) {
         Object.keys(element).forEach(key => {
           if (element[key] === selectFilter) {
-            output.push({value:element['id'], label:`${element['name']} ${(element['year'] ? element['year'] : '')}`}) 
+            output.push({ value: element['id'], label: `${element['name']} ${(element['year'] ? element['year'] : '')}` })
           }
         })
-    
+
       } else {
-        output.push({value:element['id'], label:`${element['name']} ${(element['year'] ? element['year'] : '')}`}) 
+        output.push({ value: element['id'], label: `${element['name']} ${(element['year'] ? element['year'] : '')}` })
       }
-      
+
     });
     return output
   }
@@ -68,18 +76,26 @@ function InputWrapper(props) {
   }, []);
 
   useEffect(() => {
-    if (activateInput && activateInput.length > 0) {    
+    if (activateInput && activateInput.length > 0) {
       activateInput.forEach(e => {
         if (e.split(',')[0] === rowNo.toString() && e.split(',')[1] === name) {
           if (e.split(',')[2] === 'disable') {
+            //logger('d', e)
+            setCurrentValue('x');
             setSelectDisabled(true)
             setSelectFilter(e.split(',')[2])
           } else {
+            //logger('d', e)
+            setCurrentValue('x');
+
+            if (e.split(',')[2] != selectFilter) {
+              setSelectFilter(e.split(',')[2])
+            }
+
             setSelectDisabled(false)
-            setSelectFilter(e.split(',')[2])
             setDisplayEdit(true)
           }
-        }  
+        }
       });
     }
   }, [activateInput]);
@@ -87,21 +103,21 @@ function InputWrapper(props) {
   useEffect(() => {
 
     if (defaultFilter) setSelectFilter(defaultFilter) // would prefer this in the first useEffect
-    
+
     switch (currentAction) {
       case 'updating':
         if (actionActiveState === 'confirm') {
           // setDefaultValue(currentValue);
-          if (isMulti) {
-            handleEditConfirm(name, currentValue, isEdited, currentValue); 
+          if (inputType === 'multi') {
+            handleEditConfirm(name, currentValue, isEdited, currentValue);
           } else {
             handleEditConfirm(name, currentValue, isEdited);
           }
-           
+
         } else if (actionActiveState === 'cancel') {
           // cancel update
           handleActionCancel();
-        } 
+        }
 
         if (actionActiveState === 'confirm' || actionActiveState === 'cancel') {
           setIsEdited(false);
@@ -110,12 +126,12 @@ function InputWrapper(props) {
         break;
 
       case 'creating':
-        if (!isDisabled) {    
+        if (!isDisabled) {
           setSelectDisabled(false)
         }
 
         if (actionActiveState === 'confirm' && isCreating) {
-          if (isMulti) {
+          if (inputType === 'multi') {
             handleCreateConfirm(name, currentValue, true, currentValue);
           } else {
             if (typeof currentValue === 'undefined') {
@@ -139,17 +155,17 @@ function InputWrapper(props) {
         break;
       case 'deleting':
         //nothing rn
-        break; 
+        break;
     }
   }, [currentAction, actionActiveState]);
 
   useEffect(() => {
 
     if (foreignData) {
-      if (typeof foreignData[Object.keys(foreignData)[0]] != 'undefined') { 
-        foreignData[Object.keys(foreignData)[0]].forEach( element => {
+      if (typeof foreignData[Object.keys(foreignData)[0]] != 'undefined') {
+        foreignData[Object.keys(foreignData)[0]].forEach(element => {
           if (element['id'] === props.value) {
-            if (!foreignValue && props.value) { 
+            if (!foreignValue && props.value) {
               setForeignValue(element);
             }
           }
@@ -157,144 +173,262 @@ function InputWrapper(props) {
       }
     }
 
-
-    if (linkData) { 
+    if (linkData) {
       if (typeof linkData[Object.keys(linkData)[0]] != 'undefined') {
         var temp = [];
-        linkData[Object.keys(linkData)[0]].forEach( linkElement => {
+        linkData[Object.keys(linkData)[0]].forEach(linkElement => {
           if (linkElement['card_id'] === rowId) {
-            foreignData[Object.keys(foreignData)[0]].forEach( foreignElement => {
+            foreignData[Object.keys(foreignData)[0]].forEach(foreignElement => {
               if (foreignElement['id'] === linkElement['features_id']) {
                 temp.push(foreignElement)
               }
             })
           }
-        }) 
-        setLinkDataList(temp)     
+        })
+        setLinkDataList(temp)
       }
     }
 
   }, [linkData, foreignData])
 
-  return (  
-    <>
-      {  
-      !isCreating ? (
-        isMulti ? (
-          displayEdit ? ( 
-            props.value ? (
-              <Select
-                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-                onChange={e => {setIsEdited(true); setCurrentValue(e)}}
-                isMulti
-                defaultValue={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
-                  return option.value === currentValue;
-                })} 
-             
-              />
-            ) : (
-              <Select
-                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-                onChange={e => {setIsEdited(true); setCurrentValue(e);}}
-                defaultValue={prepareDataSelect(linkDataList).filter( (option) => {
-                  return option.value;
-                })} 
-                isMulti
-          
-              />
+  if (isCreating) {
+
+    switch (inputType) {
+      case 'multi':
+        // creating/mulit
+        return (
+          <Select
+            options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])}
+            onChange={e => { setIsEdited(true); setCurrentValue(e) }}
+            isMulti
+            value={
+              prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter(option => {
+                if (Array.isArray(currentValue)) { if (exists(currentValue, option.value)) return option.value }
+                else if (!Array.isArray(currentValue) && currentValue) return option.value === currentValue
+              })}
+            isDisabled={selectDisabled}
+          />
+        )
+      case 'checklist':
+        switch (name) {
+          case 'rookie':
+            return (
+              <>
+                <span
+                  onDoubleClick={() => {setIsEdited(true); setDisplayEdit(true)}}
+                >
+                  <CheckBox
+                    svgImage={'R'}
+                    defaultState={0}
+                    setCurrentValue={setCurrentValue}
+                    displayEdit={displayEdit}
+                  />
+                </span>
+              </>
             )
-          ) : (
-            props.value ? (
-              <span
-              onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
-                { foreignValue['name'] }
-              </span>
-            ) : (
-              <span
-              onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
-                { linkDataList ? prepareDataView(linkDataList) : "loading" }
-              </span>
+          case 'patch':
+            return (
+              <>
+                <span
+                  onDoubleClick={() => {setIsEdited(true); setDisplayEdit(true)}}
+                >
+                  <CheckBox
+                    svgImage={'P'}
+                    defaultState={0}
+                    setCurrentValue={setCurrentValue}
+                    displayEdit={displayEdit}
+                  />
+                </span>
+              </> 
             )
+          case 'autograph':
+            return (
+              <>
+                <span
+                  onDoubleClick={() => {setIsEdited(true); setDisplayEdit(true)}}
+                >
+                  <CheckBox
+                    svgImage={'A'}
+                    defaultState={0}
+                    setCurrentValue={setCurrentValue}
+                    displayEdit={displayEdit}
+                  />
+                </span>
+              </>
+            )
+      }
+        return (
+
+          'error'
+        )
+      default:
+        if (foreignData) {
+          return (
+            // creating/foreignValue
+            <Select
+              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])}
+              onChange={e => {
+                setIsEdited(true);
+                if (activateInput != null) {
+                  detectCheckPrereq(name, e.value, rowNo, currentValue, false)
+                };
+                setCurrentValue(e.value)
+              }}
+              value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter((option) => {
+                return option.value === currentValue;
+              })}
+              isDisabled={selectDisabled}
+            />
           )
-        ) : (
-          foreignData? (
-            !displayEdit ? (
+        } else {
+          // creating/standard
+          return (
+            <input
+              type="text"
+              onChange={(e) => { setCurrentValue(e.target.value); setIsEdited(true) }}
+              autoFocus
+            />
+          )
+        }
+    }
+  } else {
+
+    switch (inputType) {
+      case 'multi':
+        if (displayEdit) {
+          // edit/multi
+          return (
+            <Select
+              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])}
+              onChange={e => { setIsEdited(true); setCurrentValue(e) }}
+              isMulti
+              value={
+                prepareDataSelect(currentValue ? foreignData[Object.keys(foreignData)[0]] : linkDataList).filter(option => {
+                  if (Array.isArray(currentValue)) { if (exists(currentValue, option.value)) return option.value }
+                  else if (!Array.isArray(currentValue) && currentValue) return option.value === currentValue
+                  else if (!currentValue) return option.value;
+                })}
+              isDisabled={selectDisabled}
+            />
+          )
+        } else {
+          if (props.value) {
+            // read/multi/singleValue
+            return (
               <span
-                onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
-                  {/* dwadwad */}
-                  { `${foreignValue['name']} ${foreignValue['year'] ? foreignValue['year'] : ''}`}
-                  {/* { JSON.stringify(foreignData) } */}
-                  {/* { JSON.stringify(foreignValue) } */}
-                  {/* { JSON.stringify(props.value) } */}
-                  {/* { currentValue } */}
+                onDoubleClick={() => { setDisplayEdit(true); handleDoubleClick() }}>
+                {foreignValue['name']}
               </span>
-            ) : (
+            )
+          } else {
+            // read/multi/mulipleValues
+            return (
+              <span
+                onDoubleClick={() => { setDisplayEdit(true); handleDoubleClick() }}>
+                {linkDataList ? prepareDataView(linkDataList) : "loading"}
+              </span>
+            )
+          }
+        }
+      case 'checklist':
+        switch (name) {
+          case 'rookie':
+            return (
+              <>
+                <span
+                  onDoubleClick={() => {setIsEdited(true); handleDoubleClick(); setDisplayEdit(true)}}
+                >
+                  <CheckBox
+                    svgImage={'R'}
+                    defaultState={currentValue}
+                    setCurrentValue={setCurrentValue}
+                    displayEdit={displayEdit}
+                  />
+                </span>
+              </>
+            )
+          case 'patch':
+            return (
+              <>
+                <span
+                  onDoubleClick={() => {setIsEdited(true); handleDoubleClick(); setDisplayEdit(true)}}
+                >
+                  <CheckBox
+                    svgImage={'P'}
+                    defaultState={currentValue}
+                    setCurrentValue={setCurrentValue}
+                    displayEdit={displayEdit}
+                  />
+                </span>
+              </>
+            )
+          case 'autograph':
+            return (
+              <>
+                <span
+                  onDoubleClick={() => {setIsEdited(true); handleDoubleClick(); setDisplayEdit(true)}}
+                >
+                  <CheckBox
+                    svgImage={'A'}
+                    defaultState={currentValue}
+                    setCurrentValue={setCurrentValue}
+                    displayEdit={displayEdit}
+                  />
+                </span>
+              </>
+            )
+      }
+      default:
+        if (foreignData) {
+          if (displayEdit) {
+            // edit/standard-foreign/edit
+            return (
               <Select
-                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
+                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])}
                 onChange={e => {
-                  setIsEdited(true); 
+                  setIsEdited(true);
                   if (activateInput != null) {
-                    detectCheckPrereq(name, e.value, rowNo, currentValue)
+                    detectCheckPrereq(name, e.value, rowNo, currentValue, false)
                   };
-                  setCurrentValue(e.value)}}
-                value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
-                    if (currentValue) return option.value === currentValue
-                    else return option.value === props.value; // needed for distant foreign values
-                  })} 
+                  setCurrentValue(e.value)
+                }}
+                value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter((option) => {
+                  if (currentValue) return option.value === currentValue
+                  else return option.value === props.value; // needed for distant foreign values
+                })}
                 isDisabled={selectDisabled}
               />
             )
-          ) : (
-            !displayEdit ? (
+          } else {
+            // read/standard-foreign/read
+            return (
               <span
-                onDoubleClick={() => {setDisplayEdit(true); handleDoubleClick()}}>
-                  { currentValue }
+                onDoubleClick={() => { setDisplayEdit(true); handleDoubleClick() }}>
+                {`${foreignValue['name']} ${foreignValue['year'] ? foreignValue['year'] : ''}`}
               </span>
-            ) : (
+            )
+          }
+        } else {
+          if (displayEdit) {
+            return (
               <input
                 type="text"
                 value={currentValue}
-                onChange={(e) => {setCurrentValue(e.target.value); setIsEdited(true)}}
+                onChange={(e) => { setCurrentValue(e.target.value); setIsEdited(true) }}
                 autoFocus
               />
             )
-          )
-        )
-      ) : (
-        foreignData ? (
-          isMulti ? ( 
-            <Select
-              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-              onChange={e => {setIsEdited(true); setCurrentValue(e)}}
-              isMulti
-              isDisabled={selectDisabled}
-            />
-        
-          ) : (
-            <Select
-              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])} 
-              onChange={e => {
-                setIsEdited(true); 
-                if (activateInput != null) {
-                  detectCheckPrereq(name, e.value, rowNo, currentValue)
-                };
-                setCurrentValue(e.value)}}
-              value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter( (option) => {
-                  return option.value === currentValue;
-                })} 
-              isDisabled={selectDisabled}
-            />
-          )
-        ) : (
-          <input
-            type="text"
-            onChange={(e) => {setCurrentValue(e.target.value); setIsEdited(true)}}
-            autoFocus
-          />
-        )
-      )}
-    </>
-  )
+          } else {
+            return (
+              <span
+                onDoubleClick={() => { setDisplayEdit(true); handleDoubleClick() }}>
+                {currentValue}
+              </span>
+            )
+          }
+        }
+    }
+  }
 }
 
 export default InputWrapper
