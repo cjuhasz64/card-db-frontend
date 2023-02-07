@@ -266,9 +266,14 @@ function InputWrapper(props) {
               </>
             )
       }
+      case 'number': 
         return (
-
-          'error'
+          <input
+            type="number"
+            value={currentValue}
+            onChange={(e) => { setCurrentValue(e.target.value); setIsEdited(true) }}
+            autoFocus
+          />
         )
       default:
         if (foreignData) {
@@ -316,7 +321,6 @@ function InputWrapper(props) {
         }
     }
   } else {
-
     switch (inputType) {
       case 'multi':
         if (displayEdit) {
@@ -401,6 +405,31 @@ function InputWrapper(props) {
                 </span>
               </>
             )
+      }
+
+      case 'number': 
+      if (displayEdit) { 
+        return (
+          <>
+            <input
+              type="number"
+              value={currentValue}
+              onChange={(e) => { setCurrentValue(e.target.value); setIsEdited(true) }}
+              autoFocus
+            />
+            <span>{`   ${(currentValue - defaultValue) > 0 ? '+' : ''}${(currentValue - defaultValue)}`}</span>
+          </>
+        )
+
+      } else {
+        return (
+        
+          <span
+            onDoubleClick={() => { setDisplayEdit(true); handleDoubleClick() }}>
+            {currentValue}
+          </span>
+      
+        )
       }
       default:
         if (foreignData) {

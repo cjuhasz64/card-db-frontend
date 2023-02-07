@@ -379,7 +379,11 @@ export default class Cards extends React.Component {
                               detectCheckPrereq={this.detectCheckPrereq}
                               activateInput={this.state.activateInput}
                               isDisabled={prereqEntries['default'].includes(key) ? false : true}
-                              inputType={key.includes('_list') ? 'multi' : checklist.includes(key) ? 'checklist' : null}
+                              inputType={
+                                key.includes('_list') ? 'multi' 
+                                  : checklist.includes(key) ? 'checklist' 
+                                  : key === 'quantity' ? 'number'
+                                  : null}
                             />
                           </td>
                           
@@ -412,7 +416,11 @@ export default class Cards extends React.Component {
                       handleEditConfirm={this.handleEditConfirm}
                       currentAction={this.state.currentAction}
                       actionActiveState={this.state.actionActiveState}
-                      inputType={key.includes('_list') ? 'multi' : checklist.includes(key) ? 'checklist' : null}
+                      inputType={
+                        key.includes('_list') ? 'multi' 
+                          : checklist.includes(key) ? 'checklist' 
+                          : key === 'quantity' ? 'number'
+                          : null}
                       rowId={row['id']}
                       detectCheckPrereq={this.detectCheckPrereq}
                       activateInput={this.state.activateInput}
