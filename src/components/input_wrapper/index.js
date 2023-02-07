@@ -25,6 +25,7 @@ function InputWrapper(props) {
     actionActiveState,
     handleCreateConfirm,
     foreignData,
+    dropDownData,
     isCreating,
     rowId,
     linkData,
@@ -50,7 +51,7 @@ function InputWrapper(props) {
     return output.join('/')
   }
 
-  function prepareDataSelect(data) {
+  function prepareForeignDataSelect(data) {
     let output = [];
     data.forEach(element => {
       if (selectFilter) {
@@ -65,6 +66,14 @@ function InputWrapper(props) {
       }
 
     });
+    return output
+  }
+
+  function prepareEnumDataSelect(data) {
+    let output = [];
+    Object.keys(data).forEach( element => {
+      output.push({value:element, label:element})
+    })
     return output
   }
 
@@ -198,11 +207,11 @@ function InputWrapper(props) {
         // creating/mulit
         return (
           <Select
-            options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])}
+            options={prepareForeignDataSelect(foreignData[Object.keys(foreignData)[0]])}
             onChange={e => { setIsEdited(true); setCurrentValue(e) }}
             isMulti
             value={
-              prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter(option => {
+              prepareForeignDataSelect(foreignData[Object.keys(foreignData)[0]]).filter(option => {
                 if (Array.isArray(currentValue)) { if (exists(currentValue, option.value)) return option.value }
                 else if (!Array.isArray(currentValue) && currentValue) return option.value === currentValue
               })}
@@ -266,7 +275,7 @@ function InputWrapper(props) {
           return (
             // creating/foreignValue
             <Select
-              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])}
+              options={prepareForeignDataSelect(foreignData[Object.keys(foreignData)[0]])}
               onChange={e => {
                 setIsEdited(true);
                 if (activateInput != null) {
@@ -274,21 +283,36 @@ function InputWrapper(props) {
                 };
                 setCurrentValue(e.value)
               }}
-              value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter((option) => {
+              value={prepareForeignDataSelect(foreignData[Object.keys(foreignData)[0]]).filter((option) => {
                 return option.value === currentValue;
               })}
               isDisabled={selectDisabled}
             />
           )
         } else {
+        if (dropDownData) {
+            return (
+              <Select
+                options={prepareEnumDataSelect(dropDownData)}
+                onChange={e => {
+                  setIsEdited(true);
+                  setCurrentValue(e.value)
+                }}
+                value={prepareEnumDataSelect(dropDownData).filter((option) => {
+                  return option.value === currentValue
+                })}
+              />
+            )
+          } else {
           // creating/standard
-          return (
-            <input
-              type="text"
-              onChange={(e) => { setCurrentValue(e.target.value); setIsEdited(true) }}
-              autoFocus
-            />
-          )
+            return (
+              <input
+                type="text"
+                onChange={(e) => { setCurrentValue(e.target.value); setIsEdited(true) }}
+                autoFocus
+              />
+            )
+          }
         }
     }
   } else {
@@ -299,11 +323,11 @@ function InputWrapper(props) {
           // edit/multi
           return (
             <Select
-              options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])}
+              options={prepareForeignDataSelect(foreignData[Object.keys(foreignData)[0]])}
               onChange={e => { setIsEdited(true); setCurrentValue(e) }}
               isMulti
               value={
-                prepareDataSelect(currentValue ? foreignData[Object.keys(foreignData)[0]] : linkDataList).filter(option => {
+                prepareForeignDataSelect(currentValue ? foreignData[Object.keys(foreignData)[0]] : linkDataList).filter(option => {
                   if (Array.isArray(currentValue)) { if (exists(currentValue, option.value)) return option.value }
                   else if (!Array.isArray(currentValue) && currentValue) return option.value === currentValue
                   else if (!currentValue) return option.value;
@@ -384,7 +408,7 @@ function InputWrapper(props) {
             // edit/standard-foreign/edit
             return (
               <Select
-                options={prepareDataSelect(foreignData[Object.keys(foreignData)[0]])}
+                options={prepareForeignDataSelect(foreignData[Object.keys(foreignData)[0]])}
                 onChange={e => {
                   setIsEdited(true);
                   if (activateInput != null) {
@@ -392,7 +416,7 @@ function InputWrapper(props) {
                   };
                   setCurrentValue(e.value)
                 }}
-                value={prepareDataSelect(foreignData[Object.keys(foreignData)[0]]).filter((option) => {
+                value={prepareForeignDataSelect(foreignData[Object.keys(foreignData)[0]]).filter((option) => {
                   if (currentValue) return option.value === currentValue
                   else return option.value === props.value; // needed for distant foreign values
                 })}
@@ -409,22 +433,47 @@ function InputWrapper(props) {
             )
           }
         } else {
-          if (displayEdit) {
-            return (
-              <input
-                type="text"
-                value={currentValue}
-                onChange={(e) => { setCurrentValue(e.target.value); setIsEdited(true) }}
-                autoFocus
-              />
-            )
+          if (dropDownData) {
+            if (displayEdit) {
+              return (
+                <Select
+                  //value={console.log(dropDownData['PSA10'])}
+                  options={prepareEnumDataSelect(dropDownData)}
+                  onChange={e => {
+                    setIsEdited(true);
+                    setCurrentValue(e.value)
+                  }}
+                  value={prepareEnumDataSelect(dropDownData).filter((option) => {
+                    return option.value === currentValue
+                  })}
+                />
+              )
+            } else {
+              return (
+                <span
+                  onDoubleClick={() => { setDisplayEdit(true); handleDoubleClick() }}>
+                  {currentValue}
+                </span>
+              )
+            }
           } else {
-            return (
-              <span
-                onDoubleClick={() => { setDisplayEdit(true); handleDoubleClick() }}>
-                {currentValue}
-              </span>
-            )
+            if (displayEdit) {
+              return (
+                <input
+                  type="text"
+                  value={currentValue}
+                  onChange={(e) => { setCurrentValue(e.target.value); setIsEdited(true) }}
+                  autoFocus
+                />
+              )
+            } else {
+              return (
+                <span
+                  onDoubleClick={() => { setDisplayEdit(true); handleDoubleClick() }}>
+                  {currentValue}
+                </span>
+              )
+            }
           }
         }
     }

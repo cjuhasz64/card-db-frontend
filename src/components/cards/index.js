@@ -7,6 +7,7 @@ import fetchApi from '../../util/fetchApi';
 import getForeignName from '../../util/getForeignName';
 import logger from '../../util/logger';
 import { v4 } from 'uuid';
+import Grades from './grades';
 
 const pluralize = require('pluralize')
 
@@ -37,11 +38,11 @@ const displayedColumns = {
   'variety_id':'Variety',
   'team_id': 'Team',
   'features_list':'Feature',
-  'grade':'Grade',
   'numberedTo':'Numbered',
   'rookie':'',
   'patch':'',
   'autograph':'',
+  'grade':'Grade',
   'quantity':'Quantity'
 }
 
@@ -344,9 +345,6 @@ export default class Cards extends React.Component {
   renderTable() {
     return (
       <>
-        {/* <img src={letterR} alt="Kiwi standing on oval"></img>
-        <img src={letterP} alt="Kiwi standing on oval"></img>
-        <img src={letterA} alt="Kiwi standing on oval"></img> */}
         <table>
           <thead>
             <tr>
@@ -370,11 +368,11 @@ export default class Cards extends React.Component {
                             <InputWrapper 
                               foreignData={key.includes('_id') || key.includes('_list')? 
                               {[`${pluralize(getForeignName(key))}`]:this.props.foreignData[pluralize(getForeignName(key))]} : null}
+                              dropDownData={key === 'grade' ? Grades : null}
                               currentAction={this.state.currentAction}
                               actionActiveState={this.state.actionActiveState}
                               handleCreateConfirm={this.handleCreateConfirm}
                               handleActionCancel={this.handleActionCancel}
-                              //isMulti={key.includes('_list')}
                               isCreating={true}
                               name={key}
                               rowNo={-1}
@@ -405,6 +403,7 @@ export default class Cards extends React.Component {
                       name={key}
                       rowNo={index}
                       value={Object.keys(prereqEntries).includes(key) ? this.getAssociatedId(key, row) : row[key]}
+                      dropDownData={key === 'grade' ? Grades : null}
                       foreignData={key.includes('_id') || key.includes('_list') ? 
                       {[`${getForeignName(key)}`]:this.props.foreignData[getForeignName(key)]} : null}
                       linkData={key.includes('_list') ? {[`${getForeignName(key, true)}`]:this.props.foreignData[getForeignName(key, true)]} : null}
