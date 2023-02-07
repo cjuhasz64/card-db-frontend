@@ -5,6 +5,8 @@ Double click a cell to edit it.
 
 ================================================
 TODO:
+  - fetchResources should be called once after all rows are completed updating, not after ea one
+  - Refactor all pages based on new conventions on card page
   - Filters for read
   - Sorting for read
   - Overall code cleanup and improve naming conventions
