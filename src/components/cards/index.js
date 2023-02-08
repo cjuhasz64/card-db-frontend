@@ -9,6 +9,7 @@ import logger from '../../util/logger';
 import { v4 } from 'uuid';
 import Grades from './grades';
 
+
 const pluralize = require('pluralize')
 
 const columns = [
@@ -63,9 +64,11 @@ export default class Cards extends React.Component {
     rowIsEdited: false,
     multiIsChanged: false,
     createIsValid: true,
-    currentAction: 'reading', // 'reading' 'updating' 'creating' 'deleting'
+    currentAction: 'reading', // 'reading' 'updating' 'creating' 'deleting' 'sorting'
     actionActiveState: 'inactive', // 'cancel' 'confirm' 'inactive' 'fetching' 'failure'
-    activateInput: []
+    activateInput: [],
+    sortedData: this.props.data, 
+    activeSortCol: null
   }
 
   constructor(props) {
@@ -79,6 +82,7 @@ export default class Cards extends React.Component {
     this.handleCreateConfirm = this.handleCreateConfirm.bind(this);
     this.detectCreateConfirm = this.detectCreateConfirm.bind(this);
     this.detectCheckPrereq = this.detectCheckPrereq.bind(this);
+    this.detectSort = this.detectSort.bind(this)
   }
 
   // for key:value(array) array e.g. prereqEntries
@@ -342,15 +346,92 @@ export default class Cards extends React.Component {
     })
   }
 
+  detectSort (colName, descendingOrder) {
+    if (colName != this.state.activeSortCol) {
+      this.setState({
+        activeSortCol: colName
+      })
+    } else { 
+      this.sortTable(colName, this.state.sortedData, descendingOrder);
+    }
+  }
+
+  sortTable (colName, data, descendingOrder) {
+    // TODO:
+    //  NEED TO HANDLE FEATURES
+
+    this.setState({
+      currentAction: 'sorting'
+    })
+
+    let tempData = data;
+
+    //logger('d', colName+data+descendingOrder)
+
+    if (Object.keys(prereqEntries).includes(colName)) { 
+      // distant foreign values (game_id, set_id, team_id)
+      let j, i;
+
+      tempData.sort((a,b) => {
+
+        j = this.findDataRow(this.getAssociatedId(colName, a), this.props.foreignData[getForeignName(colName)])
+        i = this.findDataRow(this.getAssociatedId(colName, b), this.props.foreignData[getForeignName(colName)])
+        if (i && j) {
+          if (descendingOrder) return j['name'] > i['name'] ? -1 : 1
+          else return j['name'] < i['name'] ? -1 : 1
+        }
+      })
+    } else { 
+      if (colName.includes('_id')) {
+        // foreign values (feature_id, variety_id)
+        let j, i;
+
+        tempData.sort((a,b) => {  
+
+          j = this.findDataRow(a[colName], this.props.foreignData[getForeignName(colName)])
+          i = this.findDataRow(b[colName], this.props.foreignData[getForeignName(colName)])
+
+          if (i && j) {
+            if (descendingOrder) return j['name'] > i['name'] ? -1 : 1
+            else return j['name'] < i['name'] ? -1 : 1
+          }
+        })
+      } else { 
+        // normal data (quantity, code, numbered, RPA)
+        tempData.sort((a,b) => {  
+          if (descendingOrder) return a[colName] > b[colName] ? -1 : 1
+          else return a[colName] < b[colName] ? -1 : 1 
+        }) 
+      }
+    }
+    this.setState({
+      sortedData: tempData,
+      // currentAction: 'reading'
+    })
+  }
+                                                           
   renderTable() {
     return (
       <>
         <table>
-          <thead>
+          <thead>  
             <tr>
-              {
-                (this.props.data.length === 0 && this.state.currentAction != 'creating') ? 'NOTHING HERE PAL' :
-                Object.keys(displayedColumns).map((key) => <th key={key}>{displayedColumns[key]}</th>)
+              { 
+                (
+                  this.props.data.length === 0 && this.state.currentAction != 'creating') ? 'NOTHING HERE PAL' :
+                  Object.keys(displayedColumns).map((key) => 
+                    <th key={key}>
+                      {/* {displayedColumns[key]} */}
+                      <CheckBox
+                        defaultState={0}
+                        detectSort={this.detectSort}
+                        colName={key}
+                        displayName={displayedColumns[key]}
+                        currentAction={this.state.currentAction}
+                        activeSortCol={this.state.activeSortCol}
+                      />  
+                    </th>
+                )
               }
             </tr>
           </thead>
@@ -396,10 +477,11 @@ export default class Cards extends React.Component {
                 ) : (
                   <></>
                 )
+                
               }
             </tr>
             {
-            this.props.data.map((row, index) =>
+            (this.state.sortedData).map((row, index) =>
               <tr>{
                 Object.keys(displayedColumns).map((key) =>
                   <td id={`${key}:${index}`}>

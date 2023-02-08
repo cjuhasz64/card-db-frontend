@@ -109,7 +109,7 @@ function InputWrapper(props) {
     }
   }, [activateInput]);
 
-  useEffect(() => {
+  useEffect(() => { 
 
     if (defaultFilter) setSelectFilter(defaultFilter) // would prefer this in the first useEffect
 
@@ -165,6 +165,20 @@ function InputWrapper(props) {
       case 'deleting':
         //nothing rn
         break;
+      case 'sorting': 
+
+        // HOT FIX: WORKS TO TRIGGER SORTING OF inputs
+        setDisplayEdit(false);
+        setCurrentValue(props.value);
+        setDefaultValue(props.value);
+        setIsEdited(false);
+        setForeignValue('');
+        setLinkDataList(null);
+        setSelectDisabled(true)
+        setSelectFilter(null)
+        handleActionCancel();
+        break;
+
     }
   }, [currentAction, actionActiveState]);
 
