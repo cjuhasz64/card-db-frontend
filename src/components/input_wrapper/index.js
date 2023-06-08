@@ -82,6 +82,7 @@ function InputWrapper(props) {
     //console.log(defaultFilter)
     // setCurrentValue(value)
     // setDefaultValue(value)
+   
   }, []);
 
   useEffect(() => {
@@ -168,15 +169,16 @@ function InputWrapper(props) {
       case 'sorting': 
 
         // HOT FIX: WORKS TO TRIGGER SORTING OF inputs
-        setDisplayEdit(false);
-        setCurrentValue(props.value);
-        setDefaultValue(props.value);
-        setIsEdited(false);
-        setForeignValue('');
-        setLinkDataList(null);
-        setSelectDisabled(true)
-        setSelectFilter(null)
-        handleActionCancel();
+        // console.log('dd')
+        // setDisplayEdit(false);
+        // setCurrentValue(props.value);
+        // setDefaultValue(props.value);
+        // setIsEdited(false);
+        // setForeignValue('');
+        // setLinkDataList(null);
+        // setSelectDisabled(true)
+        // setSelectFilter(null)
+        // handleActionCancel();
         break;
 
     }

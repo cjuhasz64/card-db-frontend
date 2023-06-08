@@ -1,0 +1,47 @@
+>.header-options {
+  // background-color: red;
+  height: 25px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+
+  >.options-edit {
+    >button {
+      border: none;
+      background-color: transparent;
+      // display: none;
+    }
+
+    >button:hover {
+      color: transparent;
+      text-shadow: 0 0 0 black;
+      cursor: pointer;
+    }
+  }
+
+  >.select-create {
+    >button {
+      border: none;
+      background-color: transparent;
+      // display: none;
+    }
+
+    >button:hover {
+      color: lightblue;
+      cursor: pointer;
+    }
+  }
+
+  >.options-create {
+    >button {
+      border: none;
+      background-color: transparent;
+      // display: none;
+    }
+
+    >button:hover {
+      color: lightblue;
+      cursor: pointer;
+    }
+  }
+}

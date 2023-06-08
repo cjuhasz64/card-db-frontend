@@ -68,7 +68,8 @@ export default class Cards extends React.Component {
     actionActiveState: 'inactive', // 'cancel' 'confirm' 'inactive' 'fetching' 'failure'
     activateInput: [],
     sortedData: this.props.data, 
-    activeSortCol: null
+    activeSortCol: null,
+    dataFilter: {}
   }
 
   constructor(props) {
@@ -83,6 +84,7 @@ export default class Cards extends React.Component {
     this.detectCreateConfirm = this.detectCreateConfirm.bind(this);
     this.detectCheckPrereq = this.detectCheckPrereq.bind(this);
     this.detectSort = this.detectSort.bind(this)
+    this.detectFilter = this.detectFilter.bind(this)
   }
 
   // for key:value(array) array e.g. prereqEntries
@@ -376,6 +378,7 @@ export default class Cards extends React.Component {
 
         j = this.findDataRow(this.getAssociatedId(colName, a), this.props.foreignData[getForeignName(colName)])
         i = this.findDataRow(this.getAssociatedId(colName, b), this.props.foreignData[getForeignName(colName)])
+
         if (i && j) {
           if (descendingOrder) return j['name'] > i['name'] ? -1 : 1
           else return j['name'] < i['name'] ? -1 : 1
@@ -405,36 +408,154 @@ export default class Cards extends React.Component {
       }
     }
     this.setState({
-      sortedData: tempData,
-      // currentAction: 'reading'
+      sortedData: tempData
     })
   }
-                                                           
+
+  detectFilter (colName, keyword) {
+    console.log(colName, keyword)
+
+    this.setState( prev => ({
+      dataFilter: {...prev.dataFilter, [colName]:keyword}
+    }))
+
+
+
+    // this.setState({
+    //   currentAction: 'sorting'
+    // })
+
+    // let output = tempData.filter( row => {
+
+    //   let flag = false;
+
+    //   Object.keys(displayedColumns).forEach( element => {
+    //     if (Object.keys(row).includes(element)) {
+    //       if (element.includes('_id')) {
+    //        // console.log(this.findDataRow(row[element], this.props.foreignData[getForeignName(element)])['name'])
+    //         flag = this.findDataRow(row[element], this.props.foreignData[getForeignName(element)])['name'].includes(keyword) ? true : flag;
+    //       } else if (element.includes('_list')){
+    //         //console.log(element)
+    //       } else {
+    //         flag = String.toString(row[element]).includes(keyword) ? true : flag;
+    //       }
+    //     } else {
+    //       //console.log(this.findDataRow(this.getAssociatedId(element, row), this.props.foreignData[getForeignName(element)])['name'])
+    //       flag = this.findDataRow(this.getAssociatedId(element, row), this.props.foreignData[getForeignName(element)])['name'].includes(keyword) ? true : flag;
+    //     }
+    //   });
+    //   return flag
+    // })
+    // this.setState({
+    //   sortedData: output,
+    // })
+    
+  }
+
+  filterRow(data) {
+    for(let i = 0; i < Object.keys(this.state.dataFilter).length; i++) {
+      let currentKey = Object.keys(this.state.dataFilter)[i];
+      switch (this.state.dataFilter[currentKey]) {
+        case '!0':
+            if (data[currentKey] === '0') return false
+          break;
+        default:
+          // search
+            console.log(currentKey, this.state.dataFilter[currentKey])
+          break;
+      }
+
+    }
+
+    
+
+
+
+    return true;
+  }
+
+  renderHeaders () {
+    return (
+        <tr>
+        { 
+           this.props.data.length === 0 && this.state.currentAction != 'creating' ? 'NOTHING HERE PAL' : Object.keys(displayedColumns).map((key) => 
+           (key != 'id') ? 
+           <th key={key}>
+              <CheckBox
+                defaultState={0}
+                detectSort={this.detectSort}
+                colName={key}
+                displayName={displayedColumns[key]}
+                currentAction={this.state.currentAction}
+                activeSortCol={this.state.activeSortCol}
+              />  
+            </th>
+            : null
+          )
+        }
+      </tr>
+    )
+  }
+
+  renderRows () {
+    return (
+      this.state.sortedData.map( (row, index) => 
+        this.filterRow(row) ? 
+        <tr>
+          {
+            Object.keys(displayedColumns).map( (key) => 
+              <td id={`${key}:${index}`}>
+                <InputWrapper 
+                  name={key}
+                  rowNo={index}
+                  value={Object.keys(prereqEntries).includes(key) ? this.getAssociatedId(key, row) : row[key]}
+                  dropDownData={key === 'grade' ? Grades : null}
+                  foreignData={key.includes('_id') || key.includes('_list') ? 
+                  {[`${getForeignName(key)}`]:this.props.foreignData[getForeignName(key)]} : null}
+                  linkData={key.includes('_list') ? {[`${getForeignName(key, true)}`]:this.props.foreignData[getForeignName(key, true)]} : null}
+                  handleDoubleClick={this.handleDoubleClick}
+                  handleActionCancel={this.handleActionCancel}
+                  handleEditConfirm={this.handleEditConfirm}
+                  currentAction={this.state.currentAction}
+                  actionActiveState={this.state.actionActiveState}
+                  inputType={
+                    key.includes('_list') ? 'multi' 
+                      : checklist.includes(key) ? 'checklist' 
+                      : key === 'quantity' ? 'number'
+                      : null}
+                  rowId={row['id']}
+                  detectCheckPrereq={this.detectCheckPrereq}
+                  activateInput={this.state.activateInput}
+                  defaultFilter={this.getAssociatedId(this.getKeyByValue(prereqEntries, key), row)}
+                />
+              </td> 
+            )
+          }
+          {
+            (this.state.currentAction) === 'reading' ? 
+            <td className='delete-active' onClick={async () => {
+              this.setState ({
+                currentAction: 'deleting'
+              })
+              await this.props.handleDelete(row['id'])
+              this.setState ({
+                currentAction: 'reading'
+              })
+            }}>x</td>
+            :<td className='delete-inactive'></td>
+          }
+          
+        </tr>
+        : null // filtered row out
+      )
+    )
+  }
+                                                      
   renderTable() {
     return (
       <>
         <table>
-          <thead>  
-            <tr>
-              { 
-                (
-                  this.props.data.length === 0 && this.state.currentAction != 'creating') ? 'NOTHING HERE PAL' :
-                  Object.keys(displayedColumns).map((key) => 
-                    <th key={key}>
-                      {/* {displayedColumns[key]} */}
-                      <CheckBox
-                        defaultState={0}
-                        detectSort={this.detectSort}
-                        colName={key}
-                        displayName={displayedColumns[key]}
-                        currentAction={this.state.currentAction}
-                        activeSortCol={this.state.activeSortCol}
-                      />  
-                    </th>
-                )
-              }
-            </tr>
-          </thead>
+          { this.renderHeaders () }
           <tbody>
             <tr>
               {
@@ -480,52 +601,7 @@ export default class Cards extends React.Component {
                 
               }
             </tr>
-            {
-            (this.state.sortedData).map((row, index) =>
-              <tr>{
-                Object.keys(displayedColumns).map((key) =>
-                  <td id={`${key}:${index}`}>
-                    <InputWrapper 
-                      name={key}
-                      rowNo={index}
-                      value={Object.keys(prereqEntries).includes(key) ? this.getAssociatedId(key, row) : row[key]}
-                      dropDownData={key === 'grade' ? Grades : null}
-                      foreignData={key.includes('_id') || key.includes('_list') ? 
-                      {[`${getForeignName(key)}`]:this.props.foreignData[getForeignName(key)]} : null}
-                      linkData={key.includes('_list') ? {[`${getForeignName(key, true)}`]:this.props.foreignData[getForeignName(key, true)]} : null}
-                      handleDoubleClick={this.handleDoubleClick}
-                      handleActionCancel={this.handleActionCancel}
-                      handleEditConfirm={this.handleEditConfirm}
-                      currentAction={this.state.currentAction}
-                      actionActiveState={this.state.actionActiveState}
-                      inputType={
-                        key.includes('_list') ? 'multi' 
-                          : checklist.includes(key) ? 'checklist' 
-                          : key === 'quantity' ? 'number'
-                          : null}
-                      rowId={row['id']}
-                      detectCheckPrereq={this.detectCheckPrereq}
-                      activateInput={this.state.activateInput}
-                      defaultFilter={this.getAssociatedId(this.getKeyByValue(prereqEntries, key), row)}
-                    />
-                  </td> 
-                )}
-                {
-                this.state.currentAction === 'reading' ? (
-                  <td className='delete-active' onClick={async () => {
-                      this.setState ({
-                        currentAction: 'deleting'
-                      })
-                      await this.props.handleDelete(row['id'])
-                      this.setState ({
-                        currentAction: 'reading'
-                      })
-                  }}>x</td>
-                ) : (
-                  <td className='delete-inactive'></td>
-                )
-              }</tr>   // delete coloumn 
-            )}
+            {this.renderRows()}
           </tbody>
         </table>
       </>
@@ -541,6 +617,7 @@ export default class Cards extends React.Component {
           detectCreate={this.detectCreate}
           currentAction={this.state.currentAction}
           detectCreateConfirm={this.detectCreateConfirm}
+          detectFilter={this.detectFilter}
         />
         {this.renderTable()}
       </div>

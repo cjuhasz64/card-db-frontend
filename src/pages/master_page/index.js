@@ -6,7 +6,7 @@ import Cards from "../../components/cards";
 import Games from "../../components/games";
 import Sets from "../../components/sets";
 import Varieties from "../../components/varieties";
-import "./style.css"
+import "./style.scss"
 import { v4 } from 'uuid';
 import logger from '../../util/logger';
 

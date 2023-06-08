@@ -32,6 +32,7 @@ function CheckBox(props) {
     if (currentAction === 'sorting') {
       if (activeSortCol === colName) setChecked(!checked)
     } else if (currentAction === 'reading' && active && activeSortCol != colName) {
+      console.log()
       setChecked(0); 
       setActive(0);
     }
@@ -81,7 +82,7 @@ function CheckBox(props) {
       return (
         <span
           onDoubleClick={e => { if (!active) {setActive(true); detectSort(colName, checked)}}}
-          onClick={e => { if (active){ detectSort(colName, checked) }}}>
+          onClick={e => { if (active){ detectSort(colName, checked)}}}>
           {`${displayName} `}
           {
           !active ? '' : 
